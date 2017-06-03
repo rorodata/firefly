@@ -24,3 +24,9 @@ And run it using firefly.
 
 	$ firefly fib:fib
 
+# Features Planned
+
+* Auto reload
+* Token-based authentication
+* supporting other input and output content-types in addition to json. (for example, a function to resize an image)
+* serverless deployment
