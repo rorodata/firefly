@@ -15,7 +15,7 @@ def get_version():
 __version__ = get_version()
 
 setup(
-    name='firefly',
+    name='Firefly',
     version=__version__,
     author='rorodata',
     author_email='rorodata.team@gmail.com',
