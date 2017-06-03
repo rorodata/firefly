@@ -1,3 +1,4 @@
+import sys
 import argparse
 from .app import Firefly
 from .server import FireflyServer
@@ -15,6 +16,10 @@ def load_function(function_spec):
     return func
 
 def main():
+    # ensure current directory is added to sys.path
+    if "" not in sys.path:
+        sys.path.insert(0, "")
+
     args = parse_args()
     function = load_function(args.function)
 
