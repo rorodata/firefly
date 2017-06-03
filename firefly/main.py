@@ -1,5 +1,6 @@
 import sys
 import argparse
+import importlib
 from .app import Firefly
 from .server import FireflyServer
 
@@ -11,7 +12,7 @@ def parse_args():
 
 def load_function(function_spec):
     mod_name, func_name = function_spec.split(":")
-    mod = __import__(mod_name, None, None, ['x'])
+    mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
     return func
 
