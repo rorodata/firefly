@@ -13,4 +13,4 @@ def validate_args(function, kwargs):
     try:
         function_signature.bind(**kwargs)
     except TypeError as err:
-        raise ValidationError(err.args[0])
+        raise ValidationError(str(err))

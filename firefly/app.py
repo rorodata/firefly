@@ -32,7 +32,7 @@ class FireflyFunction(object):
         try:
             validate_args(self.function, kwargs)
         except ValidationError as err:
-            return self.make_response({"error": err.args[0]}, status=422)
+            return self.make_response({"error": str(err)}, status=422)
 
         result = self.function(**kwargs)
         return self.make_response(result)
