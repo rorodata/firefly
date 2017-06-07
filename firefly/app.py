@@ -1,6 +1,7 @@
 from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
+from .validator import validate_args, ValidationError
 
 class Firefly(object):
     def __init__(self):
@@ -28,14 +29,21 @@ class FireflyFunction(object):
 
     def __call__(self, request):
         kwargs = self.get_inputs(request)
-        result = self.function(**kwargs)
-        return self.make_response(result)
+        try:
+            validate_args(self.function, kwargs)
+            result = self.function(**kwargs)
+            return self.make_response(result)
+        except ValidationError as err:
+            return self.make_response({"error": err.args[0]}, is_error=True)
+
 
     def get_inputs(self, request):
         return json.loads(request.body.decode('utf-8'))
 
-    def make_response(self, result):
+    def make_response(self, result, is_error=False):
         response = Response(content_type='application/json',
                             charset='utf-8')
         response.text = json.dumps(result)
+        if is_error:
+            response.status = 422
         return response
