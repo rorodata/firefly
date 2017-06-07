@@ -11,7 +11,10 @@ def parse_args():
     return p.parse_args()
 
 def load_function(function_spec):
-    mod_name, func_name = function_spec.split(":")
+    if "." not in function_spec:
+        raise Exception("Invalid function, please specify it as module.function")
+
+    mod_name, func_name = function_spec.rsplit(".", 1)
     mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
     return func

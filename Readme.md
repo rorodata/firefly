@@ -22,7 +22,7 @@ Create a simple python function.
 
 And run it using firefly.
 
-	$ firefly fib:fib
+	$ firefly fib.fib
 
 # Features Planned
 
