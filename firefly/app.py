@@ -31,19 +31,18 @@ class FireflyFunction(object):
         kwargs = self.get_inputs(request)
         try:
             validate_args(self.function, kwargs)
-            result = self.function(**kwargs)
-            return self.make_response(result)
         except ValidationError as err:
-            return self.make_response({"error": err.args[0]}, is_error=True)
+            return self.make_response({"error": err.args[0]}, status=422)
 
+        result = self.function(**kwargs)
+        return self.make_response(result)
 
     def get_inputs(self, request):
         return json.loads(request.body.decode('utf-8'))
 
-    def make_response(self, result, is_error=False):
+    def make_response(self, result, status=200):
         response = Response(content_type='application/json',
                             charset='utf-8')
         response.text = json.dumps(result)
-        if is_error:
-            response.status = 422
+        response.status = status
         return response
