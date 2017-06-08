@@ -1,5 +1,7 @@
 # Firefly
 
+[![Build Status](https://travis-ci.org/rorodata/firefly.svg?branch=master)](https://travis-ci.org/rorodata/firefly)
+
 Function as a service.
 
 # How to install?
