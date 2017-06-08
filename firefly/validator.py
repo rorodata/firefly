@@ -1,6 +1,6 @@
-import sys
+from .utils import PY2, PY3
 
-if sys.version_info[0] >= 3:
+if PY3:
     from inspect import signature
 else:
     from funcsigs import signature
