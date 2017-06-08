@@ -2,6 +2,7 @@ from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
 from .validator import validate_args, ValidationError
+from .utils import json_encode
 
 class Firefly(object):
     def __init__(self):
@@ -19,7 +20,7 @@ class Firefly(object):
         else:
             response = Response()
             response.status = "404 Not Found"
-            response.text = json.dumps({"status": "not found"})
+            response.text = json_encode({"status": "not found"})
         return response(environ, start_response)
 
 
@@ -43,6 +44,6 @@ class FireflyFunction(object):
     def make_response(self, result, status=200):
         response = Response(content_type='application/json',
                             charset='utf-8')
-        response.text = json.dumps(result)
+        response.text = json_encode(result)
         response.status = status
         return response
