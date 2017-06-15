@@ -24,7 +24,7 @@ def load_functions(function_specs):
 
 def add_routes(app, functions):
     for name, function in functions:
-        app.add_route('/'+name, function)
+        app.add_route('/'+name, function, name)
 
 def main():
     # ensure current directory is added to sys.path
