@@ -10,18 +10,18 @@ from .validator import ValidationError, FireflyError
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-b", "--bind", dest="ADDRESS", default="127.0.0.1:8000")
-    p.add_argument("-c", "--config", dest="CONFIG_FILE", default=None)
+    p.add_argument("-c", "--config", dest="config_file", default=None)
     p.add_argument("functions", nargs='*', help="functions to serve")
     return p.parse_args()
 
-def load_function(function_spec):
+def load_function(function_spec, path=None, name=None):
     if "." not in function_spec:
         raise Exception("Invalid function, please specify it as module.function")
 
     mod_name, func_name = function_spec.rsplit(".", 1)
     mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
-    return ("/"+func_name, func_name, func)
+    return ((path or "/"+func_name), (name or func_name), func)
 
 def load_functions(function_specs):
     return [load_function(function_spec) for function_spec in function_specs]
@@ -34,8 +34,8 @@ def parse_config_file(config_file):
     return config_dict
 
 def parse_config_data(config_dict):
-    return [(spec["path"], func_name, load_function(spec["function"])[2])
-            for func_name, spec in config_dict["functions"].items()]
+    return [(load_function(f["function"], path=f["path"], name=name, ))
+            for name, f in config_dict["functions"].items()]
 
 def add_routes(app, functions):
     for path, name, function in functions:
@@ -47,8 +47,8 @@ def main():
         sys.path.insert(0, "")
 
     args = parse_args()
-    print(len(args.functions), args.CONFIG_FILE)
-    if (len(args.functions) > 0 and args.CONFIG_FILE) or (len(args.functions) == 0 and not args.CONFIG_FILE):
+
+    if (args.functions and args.CONFIG_FILE) or (not args.functions and not args.CONFIG_FILE):
         raise FireflyError("Invalid arguments provided. Please specify either a config file or a list of functions.")
 
     if len(args.functions):
