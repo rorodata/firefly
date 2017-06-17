@@ -21,7 +21,9 @@ def load_function(function_spec, path=None, name=None):
     mod_name, func_name = function_spec.rsplit(".", 1)
     mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
-    return ((path or "/"+func_name), (name or func_name), func)
+    path = path or "/"+func_name
+    name = name or func_name
+    return (path, name, func)
 
 def load_functions(function_specs):
     return [load_function(function_spec) for function_spec in function_specs]
