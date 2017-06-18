@@ -8,6 +8,9 @@ else:
 class ValidationError(Exception):
     pass
 
+class FireflyError(Exception):
+    pass
+
 def validate_args(function, kwargs):
     function_signature = signature(function)
     try:
