@@ -117,10 +117,8 @@ where ``classifier.pkl`` is a ``joblib`` dump of a SVM Classifier model.
   clf = joblib.load('clf_dump.pkl')
 
   def predict(a):
-      predicted = clf.predict(a)
-      return int(predicted)
-
-In the example, the prediction is a 1x1 numpy array.
+      predicted = clf.predict(a)    # predict is 1x1 numpy array
+      return int(predicted[0])
 
 Invoke ``firefly`` as:
 ::
@@ -133,7 +131,9 @@ Invoke ``firefly`` as:
 Now, you can access this by:
 ::
 
-  $ curl -d '{"a": [5, 8]}' http://127.0.0.1:8000/predict
+  >>> from firefly.client import Client
+  >>> client = Client("http://127.0.0.1:8000")
+  >>> client.predict(a=[5, 8])
   1
 
 You can use any model provided the function returns a JSON friendly data type.
