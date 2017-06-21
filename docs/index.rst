@@ -3,24 +3,24 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Firefly's documentation!
-===================================
+firefly
+=======
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   intro
-   install
-   usage
-   mlmodel
-   config
-   deploy
+Installation
+------------
 
 
-Indices and tables
-==================
+Basic Usage
+-----------
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+Using a config file
+-------------------
+
+
+Deploying a ML model
+--------------------
+
+
+Deployment on cloud
+-------------------
