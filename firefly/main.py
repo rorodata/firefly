@@ -50,13 +50,13 @@ def main():
 
     args = parse_args()
 
-    if (args.functions and args.CONFIG_FILE) or (not args.functions and not args.CONFIG_FILE):
+    if (args.functions and args.config_file) or (not args.functions and not args.config_file):
         raise FireflyError("Invalid arguments provided. Please specify either a config file or a list of functions.")
 
     if len(args.functions):
         functions = load_functions(args.functions)
-    elif args.CONFIG_FILE:
-        functions = parse_config_data(parse_config_file(args.CONFIG_FILE))
+    elif args.config_file:
+        functions = parse_config_data(parse_config_file(args.config_file))
 
     app = Firefly()
     add_routes(app, functions)
