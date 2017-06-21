@@ -45,18 +45,22 @@ And then this function can run through ``firefly`` by the following:
   [2017-06-21 15:42:16 +0530] [31482] [INFO] Listening at: http://127.0.0.1:8000
   ...
 
-This function is now accessible at ``http://127.0.0.1:8000`` .
-You can use it by ``curl`` or any software through which you can do a POST
-request to the endpoint. The POST request payload should be a valid JSON object
-string with parameters as specified in the deployed python function. Passing in
-invalid parameters, less number of parameters or more number of parameters will
-result in the server returning a ``HTTP 422: Unprocessable Entity`` error.
+This function is now accessible at ``http://127.0.0.1:8000/square`` .
+An inbuilt ``Client`` is also provided to communicate with the ``firefly``
+server. Example usage of the client:
+::
+
+  >>> from firefly.client import Client
+  >>> client = Client("http://127.0.0.1:8000")
+  >>> client.square(n=4)
+  16
+
+Besides that, you can also use ``curl`` or any software through which you can do
+a POST request to the endpoint.
 ::
 
   $ curl -d '{"n": 4}' http://127.0.0.1:8000/square
   16
-
-In addition to that, you can use FireflyClient_ .
 
 ``firefly`` supports for any number of functions. You can pass multiple
 functions as:
@@ -110,10 +114,13 @@ where ``classifier.pkl`` is a ``joblib`` dump of a SVM Classifier model.
   # model.py
   from sklearn.externals import joblib
 
+  clf = joblib.load('clf_dump.pkl')
+
   def predict(a):
-      clf = joblib.load('clf_dump.pkl')
       predicted = clf.predict(a)
       return int(predicted)
+
+In the example, the prediction is a 1x1 numpy array.
 
 Invoke ``firefly`` as:
 ::
@@ -129,30 +136,4 @@ Now, you can access this by:
   $ curl -d '{"a": [5, 8]}' http://127.0.0.1:8000/predict
   1
 
-You can use any model provided the function returns a Python data type.
-
-Deployment on cloud
--------------------
-[TODO]
-
-
-FireflyClient
--------------
-.. _FireflyClient:
-
-You can also use ``firefly`` as a RPC framework. The function can be served
-remotely using ``firefly`` command line. There is a ```Client`` object in
-``firefly`` which can be used to communicate with an existing ``firefly``
-server.
-::
-
-  $ firefly funcs.square
-  [2017-06-21 15:42:16 +0530] [31482] [INFO] Starting gunicorn 19.7.1
-  [2017-06-21 15:42:16 +0530] [31482] [INFO] Listening at: http://127.0.0.1:8000
-  ...
-
-::
-  >>> from firefly.client import Client
-  >>> client = Client("http://127.0.0.1:8000")
-  >>> client.square(n=4)
-  16
+You can use any model provided the function returns a JSON friendly data type.
