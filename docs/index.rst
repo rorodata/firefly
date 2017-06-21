@@ -68,7 +68,7 @@ functions as:
 
   $ firefly funcs.square funcs.cube
 
-The functions ``square`` and ``cube`` can be accessed at ``127.0.0.1:8000/sqaure``
+The functions ``square`` and ``cube`` can be accessed at ``127.0.0.1:8000/square``
 and ``127.0.0.01:8000/cube`` respectively.
 
 Using a config file
@@ -117,7 +117,7 @@ where ``classifier.pkl`` is a ``joblib`` dump of a SVM Classifier model.
   clf = joblib.load('clf_dump.pkl')
 
   def predict(a):
-      predicted = clf.predict(a)    # predict is 1x1 numpy array
+      predicted = clf.predict(a)    # predicted is 1x1 numpy array
       return int(predicted[0])
 
 Invoke ``firefly`` as:
