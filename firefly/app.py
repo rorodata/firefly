@@ -6,9 +6,10 @@ from .utils import json_encode
 from .version import __version__
 
 class Firefly(object):
-    def __init__(self):
+    def __init__(self, auth_token=None):
         self.mapping = {}
         self.add_route('/', self.generate_index,internal=True)
+        self.auth_token = auth_token
 
     def add_route(self, path, function, function_name=None, **kwargs):
         self.mapping[path] = FireflyFunction(function, function_name, **kwargs)
@@ -28,16 +29,34 @@ class Firefly(object):
 
     def __call__(self, environ, start_response):
         request = Request(environ)
+        response = self.process_request(request)
+        return response(environ, start_response)
+
+    def verify_auth_token(self, request):
+        return not self.auth_token or self.auth_token == self._get_auth_token(request)
+
+    def _get_auth_token(self, request):
+        auth = request.headers.get("Authorization")
+        if auth and auth.lower().startswith("token"):
+            return auth[len("token"):].strip()
+
+    def http_error(self, status, error=None):
+        response = Response()
+        response.status = "403 Forbidden"
+        response.text = json_encode({"error": error})
+        return response
+
+    def process_request(self, request):
+        if not self.verify_auth_token(request):
+            return self.http_error('403 Forbidden', error='Invalid auth token')
+
         path = request.path_info
         if path in self.mapping:
             func = self.mapping[path]
             response = func(request)
         else:
-            response = Response()
-            response.status = "404 Not Found"
-            response.text = json_encode({"status": "not found"})
-        return response(environ, start_response)
-
+            response = self.http_error('404 Not Found', error="Not found")
+        return response
 
 class FireflyFunction(object):
     def __init__(self, function, function_name=None, **options):
@@ -45,6 +64,9 @@ class FireflyFunction(object):
         self.options = options
         self.name = function_name or function.__name__
         self.doc = function.__doc__ or ""
+
+    def __repr__(self):
+        return "<FireflyFunction %r>" % self.function
 
     def __call__(self, request):
         if self.options.get("internal", False):

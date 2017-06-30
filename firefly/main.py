@@ -9,6 +9,7 @@ from .validator import ValidationError, FireflyError
 
 def parse_args():
     p = argparse.ArgumentParser()
+    p.add_argument("-t", "--token", help="token to authenticate the requests")
     p.add_argument("-b", "--bind", dest="ADDRESS", default="127.0.0.1:8000")
     p.add_argument("-c", "--config", dest="config_file", default=None)
     p.add_argument("functions", nargs='*', help="functions to serve")
@@ -58,7 +59,7 @@ def main():
     elif args.config_file:
         functions = parse_config_data(parse_config_file(args.config_file))
 
-    app = Firefly()
+    app = Firefly(auth_token=args.token)
     add_routes(app, functions)
 
     server = FireflyServer(app, {"bind": args.ADDRESS})
