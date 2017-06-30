@@ -4,16 +4,17 @@ from firefly.client import Client, RemoteFunction, FireflyError
 from firefly.validator import ValidationError
 
 class MockResponse:
-    def __init__(self, status_code, data):
+    def __init__(self, status_code, data, headers=None):
         self.status_code = status_code
         self.data = data
+        self.headers = headers
 
     def json(self):
         return self.data
 
 def make_monkey_patch(status, data):
-    def mock_post_response(url, json):
-        r = MockResponse(status_code=status, data=data)
+    def mock_post_response(url, json, headers=None):
+        r = MockResponse(status_code=status, data=data, headers=headers)
         return r
     return mock_post_response
 
