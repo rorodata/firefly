@@ -42,7 +42,7 @@ class Firefly(object):
 
     def http_error(self, status, error=None):
         response = Response()
-        response.status = "403 Forbidden"
+        response.status = status
         response.text = json_encode({"error": error})
         return response
 
