@@ -55,6 +55,13 @@ class TestFirefly:
         response = app.process_request(request)
         assert response.status == '403 Forbidden'
 
+    def test_http_error_404(self):
+        app = Firefly()
+        app.add_route("/", square)
+
+        request = Request.blank("/sq", POST='{"a": 3}')
+        response = app.process_request(request)
+        assert response.status == '404 Not Found'
 
 class TestFireflyFunction:
     def test_call(self):
@@ -63,4 +70,3 @@ class TestFireflyFunction:
         response = func(request)
         assert response.status == '200 OK'
         assert response.text == '9'
-
