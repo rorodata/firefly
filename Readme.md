@@ -36,6 +36,10 @@ The service can be invoked by sending a POST request.
 	$ curl -d '{"n": 10}' http://127.0.0.1:8000/
 	89
 
+# Documentation
+
+<http://firefly-python.readthedocs.io/>
+
 # Features Planned
 
 * Auto reload
