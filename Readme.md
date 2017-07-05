@@ -8,7 +8,7 @@ Function as a service.
 
 Install firefly from source using:
 
-	pip install git+git://github.com/rorodata/firefly
+	pip install firefly-python
 
 # How to use?
 
