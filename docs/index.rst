@@ -19,7 +19,7 @@ Installation
 ``firefly`` can be installed by using ``pip`` as:
 ::
 
-  $ pip install git+git://github.com/rorodata/firefly
+  $ pip install firefly-python
 
 You can check the installation by using:
 ::
