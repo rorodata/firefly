@@ -1,9 +1,16 @@
+import inspect
 from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
 from .validator import validate_args, ValidationError
-from .utils import json_encode
+from .utils import json_encode, PY3
 from .version import __version__
+
+if PY3:
+    from inspect import signature, _empty
+else:
+    from funcsigs import signature, _empty
+
 
 class Firefly(object):
     def __init__(self, auth_token=None):
@@ -15,7 +22,7 @@ class Firefly(object):
         self.mapping[path] = FireflyFunction(function, function_name, **kwargs)
 
     def generate_function_list(self):
-        return {f.name: {"path": path, "doc": f.doc}
+        return {f.name: {"path": path, "doc": f.doc, "parameters": f.sig}
                 for path, f in self.mapping.items()
                 if f.options.get("internal") != True}
 
@@ -64,6 +71,7 @@ class FireflyFunction(object):
         self.options = options
         self.name = function_name or function.__name__
         self.doc = function.__doc__ or ""
+        self.sig = self.generate_signature(function)
 
     def __repr__(self):
         return "<FireflyFunction %r>" % self.function
@@ -90,3 +98,19 @@ class FireflyFunction(object):
         response.text = json_encode(result)
         response.status = status
         return response
+
+    def generate_signature(self, f):
+        func_sig = signature(f)
+        params = []
+
+        for param_name, param_obj in func_sig.parameters.items():
+            param = {
+                "name": param_name,
+                "kind": str(param_obj.kind)
+            }
+            default = param_obj.default if not param_obj.default == _empty else None
+            if default:
+                param["default"] = default
+            params += [param]
+
+        return params
