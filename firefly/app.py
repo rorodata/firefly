@@ -72,11 +72,13 @@ class FireflyFunction(object):
         if self.options.get("internal", False):
             return self.make_response(self.function())
 
-        kwargs = self.get_inputs(request)
         try:
+            kwargs = self.get_inputs(request)
             validate_args(self.function, kwargs)
         except ValidationError as err:
             return self.make_response({"error": str(err)}, status=422)
+        except json.JSONDecodeError as err:
+            return self.make_response({"error": str(err)}, status=400)
 
         result = self.function(**kwargs)
         return self.make_response(result)
