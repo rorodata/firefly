@@ -70,3 +70,11 @@ class TestFireflyFunction:
         response = func(request)
         assert response.status == '200 OK'
         assert response.text == '9'
+
+    def test_call_for_bad_request(self):
+        def sum(a):
+            return sum(a)
+        func = FireflyFunction(sum)
+        request = Request.blank("/sum", POST='{"a": [3 8]}')
+        response = func(request)
+        assert response.status == '400 Bad Request'
