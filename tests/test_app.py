@@ -1,9 +1,7 @@
 import sys
+import pytest
 from webob import Request, Response
 from firefly.app import Firefly, FireflyFunction
-
-PY2 = (sys.version_info.major == 2)
-PY3 = (sys.version_info.major == 3)
 
 def square(a):
     '''Computes square'''
@@ -87,34 +85,37 @@ class TestFireflyFunction:
         assert response.status == '200 OK'
         assert response.text == '9'
 
-    if PY2:
-        def test_generate_signature(self):
-            def sample_function(x, one="hey", **kwargs):
-                pass
-            func = FireflyFunction(sample_function)
-            assert len(func.sig) == 3
-            assert func.sig[0]['name'] == 'x'
-            assert func.sig[0]['kind'] == 'POSITIONAL_OR_KEYWORD'
-            assert func.sig[1]['name'] == 'one'
-            assert func.sig[1]['kind'] == 'POSITIONAL_OR_KEYWORD'
-            assert func.sig[1]['default'] == 'hey'
-            assert func.sig[2]['name'] == 'kwargs'
-            assert func.sig[2]['kind'] == 'VAR_KEYWORD'
-    if PY3:
-        def test_generate_signature_py3(self):
-            # work-around to avoid syntax error in python 2
-            code = 'def f(x, y=1, *, one="hey", **kwargs): pass'
-            env = {}
-            exec(code, env, env)
-            f = env['f']
+    @pytest.mark.skipif(sys.version_info.major >= 3, reason="Requires Python 2")
+    def test_generate_signature(self):
+        def sample_function(x, one="hey", two=None, **kwargs):
+            pass
+        func = FireflyFunction(sample_function)
+        assert len(func.sig) == 4
+        assert func.sig[0]['name'] == 'x'
+        assert func.sig[0]['kind'] == 'POSITIONAL_OR_KEYWORD'
+        assert func.sig[1]['name'] == 'one'
+        assert func.sig[1]['kind'] == 'POSITIONAL_OR_KEYWORD'
+        assert func.sig[1]['default'] == 'hey'
+        assert func.sig[2]['default'] == None
+        assert func.sig[3]['name'] == 'kwargs'
+        assert func.sig[3]['kind'] == 'VAR_KEYWORD'
 
-            func = FireflyFunction(f)
-            assert len(func.sig) == 4
-            assert func.sig[0]['name'] == 'x'
-            assert func.sig[0]['kind'] == 'POSITIONAL_OR_KEYWORD'
-            assert func.sig[1]['default'] == 1
-            assert func.sig[2]['name'] == 'one'
-            assert func.sig[2]['kind'] == 'KEYWORD_ONLY'
-            assert func.sig[2]['default'] == 'hey'
-            assert func.sig[3]['name'] == 'kwargs'
-            assert func.sig[3]['kind'] == 'VAR_KEYWORD'
+    @pytest.mark.skipif(sys.version_info.major < 3, reason="Requires Python 3+")
+    def test_generate_signature_py3(self):
+        # work-around to avoid syntax error in python 2
+        code = 'def f(x, y=1, *, one="hey", two=None, **kwargs): pass'
+        env = {}
+        exec(code, env, env)
+        f = env['f']
+
+        func = FireflyFunction(f)
+        assert len(func.sig) == 5
+        assert func.sig[0]['name'] == 'x'
+        assert func.sig[0]['kind'] == 'POSITIONAL_OR_KEYWORD'
+        assert func.sig[1]['default'] == 1
+        assert func.sig[2]['name'] == 'one'
+        assert func.sig[2]['kind'] == 'KEYWORD_ONLY'
+        assert func.sig[2]['default'] == 'hey'
+        assert func.sig[3]['default'] == None
+        assert func.sig[4]['name'] == 'kwargs'
+        assert func.sig[4]['kind'] == 'VAR_KEYWORD'
