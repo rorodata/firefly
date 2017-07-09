@@ -107,9 +107,8 @@ class FireflyFunction(object):
                 "name": param_name,
                 "kind": str(param_obj.kind)
             }
-            default = param_obj.default if not param_obj.default == _empty else None
-            if default:
-                param["default"] = default
+            if param_obj.default is not _empty:
+                param["default"] = param_obj.default
             params += [param]
 
         return params
