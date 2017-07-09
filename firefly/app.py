@@ -2,7 +2,7 @@ from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
 from .validator import validate_args, ValidationError
-from .utils import json_encode, PY3
+from .utils import json_encode
 from .version import __version__
 
 try:

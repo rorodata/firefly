@@ -3,6 +3,9 @@ import pytest
 from webob import Request, Response
 from firefly.app import Firefly, FireflyFunction
 
+py2_only = pytest.mark.skipif(sys.version_info.major >= 3, reason="Requires Python 2")
+py3_only = pytest.mark.skipif(sys.version_info.major < 3, reason="Requires Python 3+")
+
 def square(a):
     '''Computes square'''
     return a**2
@@ -85,7 +88,7 @@ class TestFireflyFunction:
         assert response.status == '200 OK'
         assert response.text == '9'
 
-    @pytest.mark.skipif(sys.version_info.major >= 3, reason="Requires Python 2")
+    @py2_only
     def test_generate_signature(self):
         def sample_function(x, one="hey", two=None, **kwargs):
             pass
@@ -100,7 +103,7 @@ class TestFireflyFunction:
         assert func.sig[3]['name'] == 'kwargs'
         assert func.sig[3]['kind'] == 'VAR_KEYWORD'
 
-    @pytest.mark.skipif(sys.version_info.major < 3, reason="Requires Python 3+")
+    @py3_only
     def test_generate_signature_py3(self):
         # work-around to avoid syntax error in python 2
         code = 'def f(x, y=1, *, one="hey", two=None, **kwargs): pass'
