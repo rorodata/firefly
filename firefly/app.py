@@ -1,4 +1,3 @@
-import inspect
 from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
@@ -6,9 +5,9 @@ from .validator import validate_args, ValidationError
 from .utils import json_encode, PY3
 from .version import __version__
 
-if PY3:
+try:
     from inspect import signature, _empty
-else:
+except:
     from funcsigs import signature, _empty
 
 
