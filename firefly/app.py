@@ -5,6 +5,12 @@ from .validator import validate_args, ValidationError
 from .utils import json_encode
 from .version import __version__
 
+try:
+    from inspect import signature, _empty
+except:
+    from funcsigs import signature, _empty
+
+
 class Firefly(object):
     def __init__(self, auth_token=None):
         self.mapping = {}
@@ -15,7 +21,7 @@ class Firefly(object):
         self.mapping[path] = FireflyFunction(function, function_name, **kwargs)
 
     def generate_function_list(self):
-        return {f.name: {"path": path, "doc": f.doc}
+        return {f.name: {"path": path, "doc": f.doc, "parameters": f.sig}
                 for path, f in self.mapping.items()
                 if f.options.get("internal") != True}
 
@@ -64,6 +70,7 @@ class FireflyFunction(object):
         self.options = options
         self.name = function_name or function.__name__
         self.doc = function.__doc__ or ""
+        self.sig = self.generate_signature(function)
 
     def __repr__(self):
         return "<FireflyFunction %r>" % self.function
@@ -90,3 +97,18 @@ class FireflyFunction(object):
         response.text = json_encode(result)
         response.status = status
         return response
+
+    def generate_signature(self, f):
+        func_sig = signature(f)
+        params = []
+
+        for param_name, param_obj in func_sig.parameters.items():
+            param = {
+                "name": param_name,
+                "kind": str(param_obj.kind)
+            }
+            if param_obj.default is not _empty:
+                param["default"] = param_obj.default
+            params += [param]
+
+        return params
