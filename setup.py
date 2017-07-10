@@ -86,7 +86,7 @@ if PY2:
 __version__ = get_version()
 
 setup(
-    name='Firefly',
+    name='firefly-python',
     version=__version__,
     author='rorodata',
     author_email='rorodata.team@gmail.com',
