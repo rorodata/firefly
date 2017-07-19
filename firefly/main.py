@@ -2,15 +2,21 @@ import os
 import sys
 import argparse
 import importlib
+import logging
 import yaml
 from .app import Firefly
 from .validator import ValidationError, FireflyError
 from wsgiref.simple_server import make_server
 
+logging.basicConfig(level=logging.INFO)
+
 def load_from_env():
     if 'FIREFLY_FUNCTIONS' in os.environ:
         function_names = os.environ['FIREFLY_FUNCTIONS'].split(",")
-        functions = load_functions(function_names)
+        try:
+            functions = load_functions(function_names)
+        except (ImportError, AttributeError) as err:
+            sys.exit(1)
         add_routes(app, functions)
     if 'FIREFLY_TOKEN' in os.environ:
         token = os.environ['FIREFLY_TOKEN']
@@ -29,8 +35,12 @@ def load_function(function_spec, path=None, name=None):
         raise Exception("Invalid function, please specify it as module.function")
 
     mod_name, func_name = function_spec.rsplit(".", 1)
-    mod = importlib.import_module(mod_name)
-    func = getattr(mod, func_name)
+    try:
+        mod = importlib.import_module(mod_name)
+        func = getattr(mod, func_name)
+    except (ImportError, AttributeError) as err:
+        print("Failed to load {}: {}".format(function_spec, str(err)))
+        raise
     path = path or "/"+func_name
     name = name or func_name
     return (path, name, func)
