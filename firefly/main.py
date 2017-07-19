@@ -2,13 +2,10 @@ import os
 import sys
 import argparse
 import importlib
-import logging
 import yaml
 from .app import Firefly
 from .validator import ValidationError, FireflyError
 from wsgiref.simple_server import make_server
-
-logging.basicConfig(level=logging.INFO)
 
 def load_from_env():
     if 'FIREFLY_FUNCTIONS' in os.environ:
