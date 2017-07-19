@@ -46,8 +46,10 @@ def parse_config_file(config_file):
     return config_dict
 
 def parse_config_data(config_dict):
-    return [(load_function(f["function"], path=f["path"], name=name, ))
+    functions = [(load_function(f["function"], path=f["path"], name=name, ))
             for name, f in config_dict["functions"].items()]
+    token = config_dict.get("token", None)
+    return functions, token
 
 def add_routes(app, functions):
     for path, name, function in functions:
@@ -63,12 +65,16 @@ def main():
     if (args.functions and args.config_file) or (not args.functions and not args.config_file):
         raise FireflyError("Invalid arguments provided. Please specify either a config file or a list of functions.")
 
+    token = None
+
     if len(args.functions):
         functions = load_functions(args.functions)
     elif args.config_file:
-        functions = parse_config_data(parse_config_file(args.config_file))
+        functions, token = parse_config_data(parse_config_file(args.config_file))
 
-    app.set_auth_token(args.token)
+    token = token or args.token
+
+    app.set_auth_token(token)
     add_routes(app, functions)
 
     host, port = args.ADDRESS.split(":", 1)
