@@ -25,15 +25,21 @@ Create a simple python function.
 And run it using firefly.
 
 	$ firefly fib.fib
-	[2017-06-08 12:45:11 +0530] [20237] [INFO] Starting gunicorn 19.7.1
-	[2017-06-08 12:45:11 +0530] [20237] [INFO] Listening at: http://127.0.0.1:8000 (20237)
+	http://127.0.0.1:8000/
 	...
 
-That started the fib as a service listening at <http://127.0.0.1:8000/>.
+That started the fib function as a service listening at <http://127.0.0.1:8000/>.
 
-The service can be invoked by sending a POST request.
+Let us see how to use it with a client.
 
-	$ curl -d '{"n": 10}' http://127.0.0.1:8000/
+	>>> import firefly
+	>>> client = firefly.Client("http://127.0.0.1:8000/")
+	>>> client.square(n=4)
+	16
+
+The service can also be invoked by sending a POST request.
+
+	$ curl -d '{"n": 10}' http://127.0.0.1:8000/fib
 	89
 
 # Documentation
@@ -43,6 +49,5 @@ The service can be invoked by sending a POST request.
 # Features Planned
 
 * Auto reload
-* Token-based authentication
 * supporting other input and output content-types in addition to json. (for example, a function to resize an image)
 * serverless deployment
