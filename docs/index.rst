@@ -180,7 +180,7 @@ variables.
 If you want to deploy multiple functions, pass them as a comma-seperated list.
 ::
 
-  $ gunicorn firefly.main.app -e FIREFLY_FUNCTIONS="funcs.square,funcs.cube" -e FIREFLY_TOKEN="abcd1234"
+  $ gunicorn --preload firefly.main.app -e FIREFLY_FUNCTIONS="funcs.square,funcs.cube" -e FIREFLY_TOKEN="abcd1234"
 
 Deployment on Heroku
 --------------------
