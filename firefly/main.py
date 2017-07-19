@@ -7,6 +7,15 @@ from .app import Firefly
 from .validator import ValidationError, FireflyError
 from wsgiref.simple_server import make_server
 
+def load_from_env():
+    if 'FIREFLY_FUNCTIONS' in os.environ:
+        function_names = os.environ['FIREFLY_FUNCTIONS'].split(",")
+        functions = load_functions(function_names)
+        add_routes(app, functions)
+    if 'FIREFLY_TOKEN' in os.environ:
+        token = os.environ['FIREFLY_TOKEN']
+        app.set_auth_token(token)
+
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-t", "--token", help="token to authenticate the requests")
@@ -59,7 +68,7 @@ def main():
     elif args.config_file:
         functions = parse_config_data(parse_config_file(args.config_file))
 
-    app = Firefly(auth_token=args.token)
+    app.set_auth_token(args.token)
     add_routes(app, functions)
 
     host, port = args.ADDRESS.split(":", 1)
@@ -67,3 +76,6 @@ def main():
     print("http://{}/".format(args.ADDRESS))
     server = make_server(host, port, app)
     server.serve_forever()
+
+app = Firefly()
+load_from_env()

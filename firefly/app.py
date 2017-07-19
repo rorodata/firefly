@@ -17,6 +17,9 @@ class Firefly(object):
         self.add_route('/', self.generate_index,internal=True)
         self.auth_token = auth_token
 
+    def set_auth_token(self, token):
+        self.auth_token = token
+
     def add_route(self, path, function, function_name=None, **kwargs):
         self.mapping[path] = FireflyFunction(function, function_name, **kwargs)
 
