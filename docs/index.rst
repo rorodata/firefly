@@ -49,8 +49,8 @@ An inbuilt ``Client`` is also provided to communicate with the ``firefly``
 server. Example usage of the client:
 ::
 
-  >>> from firefly.client import Client
-  >>> client = Client("http://127.0.0.1:8000")
+  >>> import firefly
+  >>> client = firefly.Client("http://127.0.0.1:8000/")
   >>> client.square(n=4)
   16
 
@@ -85,8 +85,8 @@ through the CLI or the config file.
 The token now needs to be passed with each request.
 ::
 
-  >>> from firefly.client import Client
-  >>> client = Client("http://127.0.0.1:8000", auth_token="abcd1234")
+  >>> import firefly
+  >>> client = firefly.Client("http://127.0.0.1:8000/", auth_token="abcd1234")
   >>> client.square(n=4)
   16
 
@@ -156,8 +156,8 @@ Invoke ``firefly`` as:
 Now, you can access this by:
 ::
 
-  >>> from firefly.client import Client
-  >>> client = Client("http://127.0.0.1:8000")
+  >>> import firefly
+  >>> client = firefly.Client("http://127.0.0.1:8000/")
   >>> client.predict(a=[5, 8])
   1
 
