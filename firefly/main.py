@@ -65,11 +65,14 @@ def main():
     if (args.functions and args.config_file) or (not args.functions and not args.config_file):
         raise FireflyError("Invalid arguments provided. Please specify either a config file or a list of functions.")
 
+    token = None
+
     if len(args.functions):
         functions = load_functions(args.functions)
-        token = args.token
     elif args.config_file:
         functions, token = parse_config_data(parse_config_file(args.config_file))
+
+    token = token or args.token
 
     app.set_auth_token(token)
     add_routes(app, functions)
