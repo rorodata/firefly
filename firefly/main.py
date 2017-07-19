@@ -4,8 +4,8 @@ import argparse
 import importlib
 import yaml
 from .app import Firefly
-from .server import FireflyServer
 from .validator import ValidationError, FireflyError
+from wsgiref.simple_server import make_server
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -62,5 +62,8 @@ def main():
     app = Firefly(auth_token=args.token)
     add_routes(app, functions)
 
-    server = FireflyServer(app, {"bind": args.ADDRESS})
-    server.run()
+    host, port = args.ADDRESS.split(":", 1)
+    port = int(port)
+    print("http://{}/".format(args.ADDRESS))
+    server = make_server(host, port, app)
+    server.serve_forever()
