@@ -171,7 +171,7 @@ The arguments that are passed to ``firefly`` via CLI can be set as environment
 variables.
 ::
 
-  $ gunicorn firefly.main.app -e FIREFLY_FUNCTIONS="funcs.square" -e FIREFLY_TOKEN="abcd1234"
+  $ gunicorn --preload firefly.main.app -e FIREFLY_FUNCTIONS="funcs.square" -e FIREFLY_TOKEN="abcd1234"
   [2017-07-19 14:47:57 +0530] [29601] [INFO] Starting gunicorn 19.7.1
   [2017-07-19 14:47:57 +0530] [29601] [INFO] Listening at: http://127.0.0.1:8000 (29601)
   [2017-07-19 14:47:57 +0530] [29601] [INFO] Using worker: sync
@@ -204,7 +204,7 @@ function inside the ``model`` script.
 ::
 
   # Procfile
-  web: gunicorn firefly.main:app -e FIREFLY_FUNCTIONS="model.predict"
+  web: gunicorn --preload firefly.main:app -e FIREFLY_FUNCTIONS="model.predict"
 
 ::
 
