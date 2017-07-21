@@ -1,3 +1,4 @@
+import io
 import pytest
 import requests
 from firefly.client import Client, RemoteFunction, FireflyError
@@ -12,9 +13,9 @@ class MockResponse:
     def json(self):
         return self.data
 
-def make_monkey_patch(status, data):
-    def mock_post_response(url, json, headers=None):
-        r = MockResponse(status_code=status, data=data, headers=headers)
+def make_monkey_patch(status, return_data, mode='json'):
+    def mock_post_response(url, json=None, data=None, files=None, headers=None):
+        r = MockResponse(status_code=status, data=return_data, headers=headers)
         return r
     return mock_post_response
 
@@ -47,3 +48,11 @@ class TestClass:
         c = Client("http://127.0.0.1:8000")
         with pytest.raises(FireflyError, message="Expected FireflyError"):
             c.square(a=4)
+
+    def test_call_with_file_upload(self, monkeypatch):
+        def filesize(data):
+            return len(data.read())
+        f = io.StringIO(u"test file contents")
+        monkeypatch.setattr(requests, "post", make_monkey_patch(200, "18"))
+        c = Client("http://127.0.0.1:8000")
+        assert c.filesize(data=f) == "18"
