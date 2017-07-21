@@ -1,3 +1,4 @@
+import cgi
 from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
@@ -96,7 +97,23 @@ class FireflyFunction(object):
         return self.make_response(result)
 
     def get_inputs(self, request):
-        return json.loads(request.body.decode('utf-8'))
+        content_type = self.get_content_type(request)
+        if content_type == 'multipart/form-data':
+            return self.get_multipart_formdata_inputs(request)
+        else:
+            return json.loads(request.body.decode('utf-8'))
+
+    def get_content_type(self, request):
+        content_type = request.headers.get('Content-Type', 'application/octet-stream')
+        return content_type.split(';')[0]
+
+    def get_multipart_formdata_inputs(self, request):
+        d = {}
+        for name, value in request.POST.items():
+            if isinstance(value, cgi.FieldStorage):
+                value = value.file
+            d[name] = value
+        return d
 
     def make_response(self, result, status=200):
         response = Response(content_type='application/json',
