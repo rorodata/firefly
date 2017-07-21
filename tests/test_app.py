@@ -1,3 +1,4 @@
+import io
 import sys
 import pytest
 from webob import Request, Response
@@ -95,6 +96,16 @@ class TestFireflyFunction:
         request = Request.blank("/sum", POST='{"a": [3 8]}')
         response = func(request)
         assert response.status == '400 Bad Request'
+
+    def test_call_for_file_inputs(self):
+        def filesize(data):
+            return len(data.read())
+        f = io.StringIO(u"test file contents")
+        req = Request.blank('/filesize', POST={'data': ('test', f)})
+        func = FireflyFunction(filesize)
+        resp = func(req)
+        assert resp.status == '200 OK'
+        assert resp.body == b'18'
 
     @py2_only
     def test_generate_signature(self):
