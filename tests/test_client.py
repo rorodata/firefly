@@ -56,3 +56,38 @@ class TestClass:
         monkeypatch.setattr(requests, "post", make_monkey_patch(200, "18"))
         c = Client("http://127.0.0.1:8000")
         assert c.filesize(data=f) == "18"
+
+    def test_decouple_files_with_files(self):
+        f = io.StringIO(u"test file contents")
+        c = Client("http://127.0.0.1:8000")
+        kwargs = {'file': f}
+        data, files = c.decouple_files(kwargs)
+        assert data == {}
+        assert files['file'] == f
+
+    def test_decouple_files_with_no_files(self):
+        c = Client("http://127.0.0.1:8000")
+        kwargs = {'a': 1, 'b': 'c'}
+        data, files = c.decouple_files(kwargs)
+        assert data['a'] == 1
+        assert data['b'] == 'c'
+        assert files == {}
+
+    def test_decouple_files_with_combined_input(self):
+        f = io.StringIO(u"test file contents")
+        c = Client("http://127.0.0.1:8000")
+        kwargs = {'file': f, 'a': 1}
+        data, files = c.decouple_files(kwargs)
+        assert data['a'] == 1
+        assert files['file'] == f
+
+    def is_file_present(self):
+        f = io.StringIO(u"test file contents")
+        c = Client("http://127.0.0.1:8000")
+        is_a_file = c.is_file(f)
+        assert is_a_file == True
+
+    def is_file_absent(self):
+        c = Client("http://127.0.0.1:8000")
+        is_a_file = c.is_file(1)
+        assert is_a_file == False
