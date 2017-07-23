@@ -15,10 +15,22 @@ class Client:
         if self.auth_token:
             headers['Authorization'] = 'Token {}'.format(self.auth_token)
         try:
-            response = requests.post(url, json=kwargs, headers=headers)
+            data, files = self.decouple_files(kwargs)
+            if files:
+                response = requests.post(url, data=data, files=files, headers=headers)
+            else:
+                response = requests.post(url, json=data, headers=headers)
         except ConnectionError as err:
             raise FireflyError(str(err))
         return self.handle_response(response)
+
+    def decouple_files(self, kwargs):
+        data = {arg: value for arg, value in kwargs.items() if not self.is_file(value)}
+        files = {arg: value for arg, value in kwargs.items() if self.is_file(value)}
+        return data, files
+
+    def is_file(self, value):
+        return hasattr(value, 'read') or hasattr(value, 'readlines')
 
     def handle_response(self, response):
         if response.status_code == 200:

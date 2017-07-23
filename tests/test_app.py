@@ -1,3 +1,4 @@
+import io
 import sys
 import pytest
 from webob import Request, Response
@@ -9,6 +10,9 @@ py3_only = pytest.mark.skipif(sys.version_info.major < 3, reason="Requires Pytho
 def square(a):
     '''Computes square'''
     return a**2
+
+def dummy():
+    return
 
 class TestFirefly:
     def test_generate_function_list(self):
@@ -95,6 +99,55 @@ class TestFireflyFunction:
         request = Request.blank("/sum", POST='{"a": [3 8]}')
         response = func(request)
         assert response.status == '400 Bad Request'
+
+    def test_call_for_file_inputs(self):
+        def filesize(data):
+            return len(data.read())
+        f = io.StringIO(u"test file contents")
+        req = Request.blank('/filesize', POST={'data': ('test', f)})
+        func = FireflyFunction(filesize)
+        resp = func(req)
+        assert resp.status == '200 OK'
+        assert resp.body == b'18'
+
+    def test_get_multipart_formdata_inputs_with_files(self):
+        f = io.StringIO(u"test file contents")
+        g = io.StringIO(u"test file contents")
+        req = Request.blank('/filesize', POST={'data': ('test', f)})
+        func = FireflyFunction(dummy)
+        d = func.get_multipart_formdata_inputs(req)
+        assert d['data'].read().decode() == g.read()
+
+    def test_get_multipart_formdata_inputs_with_combined_inputs(self):
+        f = io.StringIO(u"test file contents")
+        g = io.StringIO(u"test file contents")
+        req = Request.blank('/filesize', POST={'data': ('test', f), 'abc': 'hi', 'xyz': '1'})
+        func = FireflyFunction(dummy)
+        d = func.get_multipart_formdata_inputs(req)
+        assert d['data'].read().decode() == g.read()
+        assert d['abc'] == 'hi'
+        assert d['xyz'] == '1'
+
+    def test_get_multipart_formdata_inputs_with_no_files(self):
+        def dummy():
+            pass
+        req = Request.blank('/filesize', POST={'abc': 'hi', 'xyz': 1})
+        func = FireflyFunction(dummy)
+        d = func.get_multipart_formdata_inputs(req)
+        assert d['abc'] == 'hi'
+        assert d['xyz'] == '1'
+
+    def test_get_content_type_present(self):
+        req = Request.blank('/', headers={'Content-Type': 'multipart/form-data'})
+        func = FireflyFunction(dummy)
+        content_type = func.get_content_type(req)
+        assert content_type == 'multipart/form-data'
+
+    def test_get_content_type_absent(self):
+        req = Request.blank('/')
+        func = FireflyFunction(dummy)
+        content_type = func.get_content_type(req)
+        assert content_type == 'application/octet-stream'
 
     @py2_only
     def test_generate_signature(self):
