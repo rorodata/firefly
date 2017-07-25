@@ -3,7 +3,8 @@ from .validator import ValidationError
 
 class Client:
     def __init__(self, server_url, auth_token=None):
-        self.server_url = server_url
+        # strip trailing / to avoid double / chars in the URL
+        self.server_url = server_url.rstrip("/")
         self.auth_token = auth_token
 
     def __getattr__(self, func_name):
