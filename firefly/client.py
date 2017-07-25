@@ -56,7 +56,7 @@ class Client:
             raise FireflyError("Oops! Something really bad happened")
 
 def RemoteFunction(client, func_name):
-    def wrapped(self, **kwargs):
+    def wrapped(**kwargs):
         return client.call_func(func_name, **kwargs)
     wrapped.__name__ = func_name
     wrapped.__qualname__ = func_name
