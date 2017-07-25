@@ -22,29 +22,34 @@ def make_monkey_patch(status, return_data, mode='json'):
 class TestClass:
     def test_call_for_success_event(self, monkeypatch):
         monkeypatch.setattr(requests, "post", make_monkey_patch(200, 16))
+        monkeypatch.setattr(requests, "get", make_monkey_patch(200, {}))
         c = Client("http://127.0.0.1:8000")
         assert c.square(a=4) == 16
 
     def test_call_for_validation_error(self, monkeypatch):
         monkeypatch.setattr(requests, "post", make_monkey_patch(404, {"status": "not found"}))
+        monkeypatch.setattr(requests, "get", make_monkey_patch(200, {}))
         c = Client("http://127.0.0.1:8000")
         with pytest.raises(FireflyError, message="Expected FireflyError"):
             c.sq(a=4)
 
     def test_call_for_validation_error(self, monkeypatch):
         monkeypatch.setattr(requests, "post", make_monkey_patch(422, {"error": "missing a required argument: 'a'"}))
+        monkeypatch.setattr(requests, "get", make_monkey_patch(200, {}))
         c = Client("http://127.0.0.1:8000")
         with pytest.raises(ValidationError, message="Expected ValidationError"):
             c.square(b=4)
 
     def test_call_for_server_error(self, monkeypatch):
         monkeypatch.setattr(requests, "post", make_monkey_patch(500, ""))
+        monkeypatch.setattr(requests, "get", make_monkey_patch(200, {}))
         c = Client("http://127.0.0.1:8000")
         with pytest.raises(FireflyError, message="Expected FireflyError"):
             c.square(a=4)
 
     def test_call_for_uncaught_exception(self, monkeypatch):
         monkeypatch.setattr(requests, "post", make_monkey_patch(502, ""))
+        monkeypatch.setattr(requests, "get", make_monkey_patch(200, {}))
         c = Client("http://127.0.0.1:8000")
         with pytest.raises(FireflyError, message="Expected FireflyError"):
             c.square(a=4)
@@ -54,6 +59,7 @@ class TestClass:
             return len(data.read())
         f = io.StringIO(u"test file contents")
         monkeypatch.setattr(requests, "post", make_monkey_patch(200, "18"))
+        monkeypatch.setattr(requests, "get", make_monkey_patch(200, {}))
         c = Client("http://127.0.0.1:8000")
         assert c.filesize(data=f) == "18"
 
