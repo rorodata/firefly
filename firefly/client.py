@@ -25,6 +25,14 @@ class Client:
             raise FireflyError(str(err))
         return self.handle_response(response)
 
+    def _get_metadata(self):
+        url = self.server_url + "/"
+        return requests.get(url).json()
+
+    def get_doc(self, func_name):
+        metadata = self._get_metadata().get("functions", {})
+        return metadata.get(func_name, {}).get("doc") or ""
+
     def decouple_files(self, kwargs):
         data = {arg: value for arg, value in kwargs.items() if not self.is_file(value)}
         files = {arg: value for arg, value in kwargs.items() if self.is_file(value)}
@@ -47,13 +55,13 @@ class Client:
         else:
             raise FireflyError("Oops! Something really bad happened")
 
-class RemoteFunction:
-    def __init__(self, client, func_name):
-        self.client = client
-        self.func_name = func_name
-
-    def __call__(self, **kwargs):
-        return self.client.call_func(self.func_name, **kwargs)
+def RemoteFunction(client, func_name):
+    def wrapped(self, **kwargs):
+        return client.call_func(func_name, **kwargs)
+    wrapped.__name__ = func_name
+    wrapped.__qualname__ = func_name
+    wrapped.__doc__ = client.get_doc(func_name)
+    return wrapped
 
 class FireflyError(Exception):
     pass
