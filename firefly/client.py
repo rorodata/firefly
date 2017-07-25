@@ -10,7 +10,7 @@ class Client:
         return RemoteFunction(self, func_name)
 
     def call_func(self, func_name, **kwargs):
-        url = self.server_url+"/"+func_name
+        url = self.server_url.rstrip("/")+"/"+func_name
         headers = {}
         if self.auth_token:
             headers['Authorization'] = 'Token {}'.format(self.auth_token)
