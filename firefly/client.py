@@ -56,7 +56,7 @@ class Client:
             raise FireflyError("Oops! Something really bad happened")
 
     def decode_response(self, response):
-        if response.headers["Content-type"] == "application/octet-stream":
+        if response.headers["Content-Type"] == "application/octet-stream":
             return response.raw
         else:
             return response.json()

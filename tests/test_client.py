@@ -8,13 +8,14 @@ class MockResponse:
     def __init__(self, status_code, data, headers=None):
         self.status_code = status_code
         self.data = data
-        self.headers = headers
+        self.headers = headers or {}
+        self.headers.setdefault("Content-Type", "application/json")
 
     def json(self):
         return self.data
 
 def make_monkey_patch(status, return_data, mode='json'):
-    def mock_post_response(url, json=None, data=None, files=None, headers=None):
+    def mock_post_response(url, json=None, data=None, files=None, headers=None, **kwargs):
         r = MockResponse(status_code=status, data=return_data, headers=headers)
         return r
     return mock_post_response
