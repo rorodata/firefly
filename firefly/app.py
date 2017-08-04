@@ -3,7 +3,7 @@ from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
 from .validator import validate_args, ValidationError
-from .utils import json_encode
+from .utils import json_encode, is_file, FileIter
 from .version import __version__
 
 try:
@@ -116,9 +116,13 @@ class FireflyFunction(object):
         return d
 
     def make_response(self, result, status=200):
-        response = Response(content_type='application/json',
-                            charset='utf-8')
-        response.text = json_encode(result)
+        if is_file(result):
+            response = Response(content_type='application/octet-stream')
+            response.app_iter = FileIter(result)
+        else:
+            response = Response(content_type='application/json',
+                                charset='utf-8')
+            response.text = json_encode(result)
         response.status = status
         return response
 

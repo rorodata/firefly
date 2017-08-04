@@ -18,9 +18,9 @@ class Client:
         try:
             data, files = self.decouple_files(kwargs)
             if files:
-                response = requests.post(url, data=data, files=files, headers=headers)
+                response = requests.post(url, data=data, files=files, headers=headers, stream=True)
             else:
-                response = requests.post(url, json=data, headers=headers)
+                response = requests.post(url, json=data, headers=headers, stream=True)
         except ConnectionError as err:
             raise FireflyError(str(err))
         return self.handle_response(response)
@@ -43,7 +43,7 @@ class Client:
 
     def handle_response(self, response):
         if response.status_code == 200:
-            return response.json()
+            return self.decode_response(response)
         elif response.status_code == 403:
             raise FireflyError("Authorization token mismatch.")
         elif response.status_code == 404:
@@ -54,6 +54,12 @@ class Client:
             raise FireflyError("Internal Server Error")
         else:
             raise FireflyError("Oops! Something really bad happened")
+
+    def decode_response(self, response):
+        if response.headers["Content-type"] == "application/octet-stream":
+            return response.raw
+        else:
+            return response.json()
 
 def RemoteFunction(client, func_name):
     def wrapped(**kwargs):
