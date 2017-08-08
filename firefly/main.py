@@ -29,7 +29,7 @@ def parse_args():
 
 def load_function(function_spec, path=None, name=None):
     if "." not in function_spec:
-        raise Exception("Invalid function, please specify it as module.function")
+        raise Exception("Invalid function: {}, please specify it as module.function".format(function_spec))
 
     mod_name, func_name = function_spec.rsplit(".", 1)
     try:
