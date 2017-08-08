@@ -8,15 +8,25 @@ from .validator import ValidationError, FireflyError
 from wsgiref.simple_server import make_server
 
 def load_from_env():
+    functions = None
+    token = None
     if 'FIREFLY_FUNCTIONS' in os.environ:
         function_names = os.environ['FIREFLY_FUNCTIONS'].split(",")
         try:
             functions = load_functions(function_names)
         except (ImportError, AttributeError) as err:
             sys.exit(1)
-        add_routes(app, functions)
+
     if 'FIREFLY_TOKEN' in os.environ:
         token = os.environ['FIREFLY_TOKEN']
+
+    if 'FIREFLY_CONFIG' in os.environ:
+        functions, token = parse_config_data(parse_config_file(os.environ['FIREFLY_CONFIG']))
+
+    if functions:
+        add_routes(app, functions)
+
+    if token:
         app.set_auth_token(token)
 
 def parse_args():
