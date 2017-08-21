@@ -95,9 +95,9 @@ class FireflyFunction(object):
 
         try:
             result = self.function(**kwargs)
-        except ValueError as err:
+        except Exception as err:
             return self.make_response(
-                    {"error": "ValueError: {}".format(str(err))}, status=500
+                    {"error": "{}: {}".format(err.__class__.__name__, str(err))}, status=500
                 )
         return self.make_response(result)
 
