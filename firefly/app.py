@@ -93,7 +93,12 @@ class FireflyFunction(object):
         except ValidationError as err:
             return self.make_response({"error": str(err)}, status=422)
 
-        result = self.function(**kwargs)
+        try:
+            result = self.function(**kwargs)
+        except ValueError as err:
+            return self.make_response(
+                    {"error": "ValueError: {}".format(str(err))}, status=500
+                )
         return self.make_response(result)
 
     def get_inputs(self, request):
