@@ -42,7 +42,7 @@ class TestClass:
             c.square(b=4)
 
     def test_call_for_server_error(self, monkeypatch):
-        monkeypatch.setattr(requests, "post", make_monkey_patch(500, ""))
+        monkeypatch.setattr(requests, "post", make_monkey_patch(500, {"error": "ValueError: Dummy Error"}))
         monkeypatch.setattr(requests, "get", make_monkey_patch(200, {}))
         c = Client("http://127.0.0.1:8000")
         with pytest.raises(FireflyError, message="Expected FireflyError"):

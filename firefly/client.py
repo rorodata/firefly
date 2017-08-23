@@ -51,7 +51,10 @@ class Client:
         elif response.status_code == 422:
             raise ValidationError(response.json()["error"])
         elif response.status_code == 500:
-            raise FireflyError("Internal Server Error")
+            if response.headers["Content-Type"] == "application/json":
+                raise FireflyError(response.json()["error"])
+            else:
+                raise FireflyError(response.text)
         else:
             raise FireflyError("Oops! Something really bad happened")
 
