@@ -1,6 +1,13 @@
 Firefly changelog
 =================
 
+Version 0.1.5 - 2017-08-23
+--------------------------
+
+* Added support for returning a file object from a function
+* Added support for specifying config file as environment variable
+* Better error reporting
+
 Version 0.1.4 - 2017-07-25
 --------------------------
 
