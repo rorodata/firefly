@@ -100,6 +100,15 @@ class TestFireflyFunction:
         response = func(request)
         assert response.status == '400 Bad Request'
 
+    def test_call_for_internal_function_error(self):
+        def dummy(a):
+            raise ValueError("This is a test")
+        req = Request.blank('/dummy', POST='{"a": 1}')
+        func = FireflyFunction(dummy)
+        resp = func(req)
+        assert resp.status == '500 Internal Server Error'
+        assert resp.json == {'error': 'ValueError: This is a test'}
+
     def test_call_for_file_inputs(self):
         def filesize(data):
             return len(data.read())
