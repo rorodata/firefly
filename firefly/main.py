@@ -3,9 +3,12 @@ import sys
 import argparse
 import importlib
 import yaml
+import logging
 from .app import Firefly
 from .validator import ValidationError, FireflyError
 from wsgiref.simple_server import make_server
+
+logger = logging.getLogger("firefly")
 
 def load_from_env():
     functions = None
@@ -21,6 +24,7 @@ def load_from_env():
         token = os.environ['FIREFLY_TOKEN']
 
     if 'FIREFLY_CONFIG' in os.environ:
+        logger.info("loading config file: %s", os.environ['FIREFLY_CONFIG'])
         functions, token = parse_config_data(parse_config_file(os.environ['FIREFLY_CONFIG']))
 
     if functions:
@@ -72,6 +76,13 @@ def add_routes(app, functions):
     for path, name, function in functions:
         app.add_route(path, function, name)
 
+def setup_logger():
+    level = logging.INFO
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
+        datefmt='%Y-%m-%d %H:%M:%S')
+
 def main():
     # ensure current directory is added to sys.path
     if "" not in sys.path:
@@ -100,5 +111,7 @@ def main():
     server = make_server(host, port, app)
     server.serve_forever()
 
+setup_logger()
+logger.info("Starting Firefly...")
 app = Firefly()
 load_from_env()
