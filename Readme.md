@@ -1,16 +1,21 @@
-# Firefly
+Firefly
+=======
 
-[![Build Status](https://travis-ci.org/rorodata/firefly.svg?branch=master)](https://travis-ci.org/rorodata/firefly)
+.. image:: https://travis-ci.org/rorodata/firefly.svg?branch=master
+   :alt: Build Status
+   :target: https://travis-ci.org/rorodata/firefly
 
 Function as a service.
 
-# How to install?
+How to install?
+---------------
 
 Install firefly from source using:
 
 	pip install firefly-python
 
-# How to use?
+How to use?
+-----------
 
 Create a simple python function.
 
@@ -42,12 +47,14 @@ The service can also be invoked by sending a POST request.
 	$ curl -d '{"n": 10}' http://127.0.0.1:8000/fib
 	89
 
-# Documentation
+Documentation
+-------------
 
 <http://firefly-python.readthedocs.io/>
 
-# Features Planned
+Features Planned
+----------------
 
-* Auto reload
-* supporting other input and output content-types in addition to json. (for example, a function to resize an image)
-* serverless deployment
+- Auto reload
+- supporting other input and output content-types in addition to json. (for example, a function to resize an image)
+- serverless deployment
