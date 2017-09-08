@@ -2,6 +2,7 @@ import cgi
 from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
+import logging
 from .validator import validate_args, ValidationError
 from .utils import json_encode, is_file, FileIter
 from .version import __version__
@@ -11,6 +12,7 @@ try:
 except:
     from funcsigs import signature, _empty
 
+logger = logging.getLogger("firefly")
 
 class Firefly(object):
     def __init__(self, auth_token=None):
@@ -65,7 +67,7 @@ class Firefly(object):
             func = self.mapping[path]
             response = func(request)
         else:
-            response = self.http_error('404 Not Found', error="Not found")
+            response = self.http_error('404 Not Found', error="Not found: " + path)
         return response
 
 class FireflyFunction(object):
@@ -83,19 +85,23 @@ class FireflyFunction(object):
         if self.options.get("internal", False):
             return self.make_response(self.function())
 
+        logger.info("calling function %s", self.name)
         try:
             kwargs = self.get_inputs(request)
         except ValueError as err:
+            logger.warn("Function %s failed with ValueError: %s.", self.name, err)
             return self.make_response({"error": str(err)}, status=400)
 
         try:
             validate_args(self.function, kwargs)
         except ValidationError as err:
+            logger.warn("Function %s failed with ValidationError: %s.", self.name, err)
             return self.make_response({"error": str(err)}, status=422)
 
         try:
             result = self.function(**kwargs)
         except Exception as err:
+            logger.error("Function %s failed with exception.", self.name, exc_info=True)
             return self.make_response(
                     {"error": "{}: {}".format(err.__class__.__name__, str(err))}, status=500
                 )
