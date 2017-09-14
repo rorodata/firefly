@@ -15,8 +15,8 @@ class Client:
         path = self._get_path(func_name)
         return self.request(path, **kwargs)
 
-    def request(self, path, **kwargs):
-        url = self.server_url + path
+    def request(self, _path, **kwargs):
+        url = self.server_url + _path
         headers = {}
         if self.auth_token:
             headers['Authorization'] = 'Token {}'.format(self.auth_token)
