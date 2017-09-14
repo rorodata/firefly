@@ -6,12 +6,17 @@ class Client:
         # strip trailing / to avoid double / chars in the URL
         self.server_url = server_url.rstrip("/")
         self.auth_token = auth_token
+        self._metadata = None
 
     def __getattr__(self, func_name):
         return RemoteFunction(self, func_name)
 
     def call_func(self, func_name, **kwargs):
-        url = self.server_url+"/"+func_name
+        path = self._get_path(func_name)
+        return self.request(path, **kwargs)
+
+    def request(self, path, **kwargs):
+        url = self.server_url + path
         headers = {}
         if self.auth_token:
             headers['Authorization'] = 'Token {}'.format(self.auth_token)
@@ -25,9 +30,16 @@ class Client:
             raise FireflyError(str(err))
         return self.handle_response(response)
 
+    def _get_path(self, func_name):
+        functions = self._metadata.get('functions', {})
+        func_info = functions.get(func_name) or {"path": "/" + func_name}
+        return func_info["path"]
+
     def _get_metadata(self):
-        url = self.server_url + "/"
-        return requests.get(url).json()
+        if self._metadata is None:
+            url = self.server_url + "/"
+            self._metadata = requests.get(url).json()
+        return self._metadata
 
     def get_doc(self, func_name):
         metadata = self._get_metadata().get("functions", {})
