@@ -1,4 +1,5 @@
 import requests
+from requests import ConnectionError
 from .validator import ValidationError
 
 class Client:
@@ -26,8 +27,8 @@ class Client:
                 response = requests.post(url, data=data, files=files, headers=headers, stream=True)
             else:
                 response = requests.post(url, json=data, headers=headers, stream=True)
-        except ConnectionError as err:
-            raise FireflyError(str(err))
+        except ConnectionError:
+            raise FireflyError('Unable to connect to the server, please try again later.')
         return self.handle_response(response)
 
     def _get_path(self, func_name):
@@ -36,10 +37,13 @@ class Client:
         return func_info["path"]
 
     def _get_metadata(self):
-        if self._metadata is None:
-            url = self.server_url + "/"
-            self._metadata = requests.get(url).json()
-        return self._metadata
+        try:
+            if self._metadata is None:
+                url = self.server_url + "/"
+                self._metadata = requests.get(url).json()
+            return self._metadata
+        except ConnectionError as err:
+            raise FireflyError('Unable to connect to the server, please try again later.')
 
     def get_doc(self, func_name):
         metadata = self._get_metadata().get("functions", {})
