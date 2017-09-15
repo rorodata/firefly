@@ -1,6 +1,11 @@
 Firefly changelog
 =================
 
+Version 0.1.8 - 2017-09-17
+--------------------------
+
+* Added a simple hack to allow sending custom http status codes from functions
+
 Version 0.1.7 - 2017-09-16
 --------------------------
 
