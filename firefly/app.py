@@ -112,6 +112,8 @@ class FireflyFunction(object):
 
         try:
             result = self.function(**kwargs)
+        except HTTPError as e:
+            return e.get_response()
         except Exception as err:
             logger.error("Function %s failed with exception.", self.name, exc_info=True)
             return self.make_response(
@@ -163,3 +165,18 @@ class FireflyFunction(object):
             params += [param]
 
         return params
+
+class HTTPError(Exception):
+    """Exception to be raised to send different HTTP status codes.
+    """
+    def __init__(self, status_code, body, headers={}):
+        self.status_code = status_code
+        self.body = body
+        self.headers = headers
+
+    def get_response(self):
+        response = Response()
+        response.status = self.status_code
+        response.text = self.body
+        response.headers.update(self.headers)
+        return response
