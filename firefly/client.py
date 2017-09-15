@@ -47,7 +47,14 @@ class Client:
         try:
             if self._metadata is None:
                 url = self.server_url + "/"
-                self._metadata = requests.get(url).json()
+                response = requests.get(url)
+
+                if response.status_code == 200:
+                    self._metadata = response.json()
+                else:
+                    raise FireflyError(
+                        "Failed to contact the server (http status code {}).".format(
+                            response.status_code))
             return self._metadata
         except ConnectionError as err:
             raise FireflyError('Unable to connect to the server, please try again later.')
