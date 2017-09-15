@@ -6,6 +6,7 @@ import logging
 from .validator import validate_args, ValidationError
 from .utils import json_encode, is_file, FileIter
 from .version import __version__
+import threading
 
 try:
     from inspect import signature, _empty
@@ -13,6 +14,13 @@ except:
     from funcsigs import signature, _empty
 
 logger = logging.getLogger("firefly")
+
+# XXX-Anand
+# Hack to store the request-local context.
+# Need to think of a better way to handle this
+# or switch to Flask.
+ctx = threading.local()
+ctx.request = None
 
 class Firefly(object):
     def __init__(self, auth_token=None):
@@ -62,12 +70,16 @@ class Firefly(object):
         if not self.verify_auth_token(request):
             return self.http_error('403 Forbidden', error='Invalid auth token')
 
+        ctx.request = request
+
         path = request.path_info
         if path in self.mapping:
             func = self.mapping[path]
             response = func(request)
         else:
             response = self.http_error('404 Not Found', error="Not found: " + path)
+
+        ctx.request = None
         return response
 
 class FireflyFunction(object):
