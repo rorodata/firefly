@@ -1,4 +1,4 @@
 WebOb==1.7.2
-requests==2.18.1
+requests>=2.18.1
 PyYAML==3.12
 funcsigs==1.0.2 ; python_version < '3'
