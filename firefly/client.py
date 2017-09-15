@@ -18,10 +18,8 @@ class Client:
 
     def request(self, _path, **kwargs):
         url = self.server_url + _path
-        headers = {}
-        if self.auth_token:
-            headers['Authorization'] = 'Token {}'.format(self.auth_token)
         try:
+            headers = self.prepare_headers()
             data, files = self.decouple_files(kwargs)
             if files:
                 response = requests.post(url, data=data, files=files, headers=headers, stream=True)
@@ -30,6 +28,15 @@ class Client:
         except ConnectionError:
             raise FireflyError('Unable to connect to the server, please try again later.')
         return self.handle_response(response)
+
+    def prepare_headers(self):
+        """Prepares headers for sending a request to the firefly server.
+        """
+        headers = {}
+        if self.auth_token:
+            headers['Authorization'] = 'Token {}'.format(self.auth_token)
+        return headers
+
 
     def _get_path(self, func_name):
         functions = self._metadata.get('functions', {})
