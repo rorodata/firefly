@@ -1,6 +1,11 @@
 Firefly changelog
 =================
 
+Version 0.1.9 - 2017-09-27
+--------------------------
+
+* Fixed error invoking the functions from the client when the firefly app is secured using auth token
+
 Version 0.1.8 - 2017-09-17
 --------------------------
 
