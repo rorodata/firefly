@@ -47,7 +47,8 @@ class Client:
         try:
             if self._metadata is None:
                 url = self.server_url + "/"
-                response = requests.get(url)
+                headers = self.prepare_headers()
+                response = requests.get(url, headers=headers)
 
                 if response.status_code == 200:
                     self._metadata = response.json()
