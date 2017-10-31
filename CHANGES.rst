@@ -1,6 +1,24 @@
 Firefly changelog
 =================
 
+Version 0.1.8 - 2017-09-17
+--------------------------
+
+* Added a simple hack to allow sending custom http status codes from functions
+
+Version 0.1.7 - 2017-09-16
+--------------------------
+
+* Added a hack to allow extending firefly
+* Made it possible to inject new headers when sending a request by extending the Client
+* Better error reporting in the client when the server is not running
+
+Version 0.1.6 - 2017-09-14
+--------------------------
+
+* Added support for logging
+* Fixed the issue of client not using the path specified in the function specs
+
 Version 0.1.5 - 2017-08-23
 --------------------------
 

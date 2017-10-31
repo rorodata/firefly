@@ -67,7 +67,7 @@ def parse_config_file(config_file):
     return config_dict
 
 def parse_config_data(config_dict):
-    functions = [(load_function(f["function"], path=f["path"], name=name, ))
+    functions = [(load_function(f["function"], path=f.get("path"), name=name, ))
             for name, f in config_dict["functions"].items()]
     token = config_dict.get("token", None)
     return functions, token

@@ -2,15 +2,25 @@ import cgi
 from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
+import logging
 from .validator import validate_args, ValidationError
 from .utils import json_encode, is_file, FileIter
 from .version import __version__
+import threading
 
 try:
     from inspect import signature, _empty
 except:
     from funcsigs import signature, _empty
 
+logger = logging.getLogger("firefly")
+
+# XXX-Anand
+# Hack to store the request-local context.
+# Need to think of a better way to handle this
+# or switch to Flask.
+ctx = threading.local()
+ctx.request = None
 
 class Firefly(object):
     def __init__(self, auth_token=None):
@@ -60,12 +70,16 @@ class Firefly(object):
         if not self.verify_auth_token(request):
             return self.http_error('403 Forbidden', error='Invalid auth token')
 
+        ctx.request = request
+
         path = request.path_info
         if path in self.mapping:
             func = self.mapping[path]
             response = func(request)
         else:
-            response = self.http_error('404 Not Found', error="Not found")
+            response = self.http_error('404 Not Found', error="Not found: " + path)
+
+        ctx.request = None
         return response
 
 class FireflyFunction(object):
@@ -83,19 +97,25 @@ class FireflyFunction(object):
         if self.options.get("internal", False):
             return self.make_response(self.function())
 
+        logger.info("calling function %s", self.name)
         try:
             kwargs = self.get_inputs(request)
         except ValueError as err:
+            logger.warn("Function %s failed with ValueError: %s.", self.name, err)
             return self.make_response({"error": str(err)}, status=400)
 
         try:
             validate_args(self.function, kwargs)
         except ValidationError as err:
+            logger.warn("Function %s failed with ValidationError: %s.", self.name, err)
             return self.make_response({"error": str(err)}, status=422)
 
         try:
             result = self.function(**kwargs)
+        except HTTPError as e:
+            return e.get_response()
         except Exception as err:
+            logger.error("Function %s failed with exception.", self.name, exc_info=True)
             return self.make_response(
                     {"error": "{}: {}".format(err.__class__.__name__, str(err))}, status=500
                 )
@@ -145,3 +165,18 @@ class FireflyFunction(object):
             params += [param]
 
         return params
+
+class HTTPError(Exception):
+    """Exception to be raised to send different HTTP status codes.
+    """
+    def __init__(self, status_code, body, headers={}):
+        self.status_code = status_code
+        self.body = body
+        self.headers = headers
+
+    def get_response(self):
+        response = Response()
+        response.status = self.status_code
+        response.text = self.body
+        response.headers.update(self.headers)
+        return response
