@@ -1,6 +1,11 @@
 Firefly changelog
 =================
 
+Version 0.1.10 - 2017-11-13
+---------------------------
+
+* Fixed the issue that was causing the request local data to leak across requests
+
 Version 0.1.9 - 2017-09-27
 --------------------------
 
