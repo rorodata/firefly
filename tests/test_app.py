@@ -2,7 +2,7 @@ import io
 import sys
 import pytest
 from webob import Request, Response
-from firefly.app import Firefly, FireflyFunction
+from firefly.app import Firefly, FireflyFunction, ctx
 
 py2_only = pytest.mark.skipif(sys.version_info.major >= 3, reason="Requires Python 2")
 py3_only = pytest.mark.skipif(sys.version_info.major < 3, reason="Requires Python 3+")
@@ -83,6 +83,39 @@ class TestFirefly:
         request = Request.blank("/sq", POST='{"a": 3}')
         response = app.process_request(request)
         assert response.status == '404 Not Found'
+
+    def test_ctx(self):
+        def peek_ctx():
+            keys = sorted(ctx.__dict__.keys())
+            return list(keys)
+
+        app = Firefly()
+        app.add_route("/", peek_ctx)
+
+        request = Request.blank("/", POST='{}')
+        response = app.process_request(request)
+        assert response.status == '200 OK'
+        assert response.json == ['request']
+
+    def test_ctx_cross_request(self):
+        def peek_ctx():
+            print("peek_ctx", ctx.__dict__)
+            ctx.count = getattr(ctx, "count", 0) + 1
+            return ctx.count
+
+        app = Firefly()
+        app.add_route("/", peek_ctx)
+
+        request = Request.blank("/", POST='{}')
+        response = app.process_request(request)
+        assert response.status == '200 OK'
+        assert response.json == 1
+
+        # Subsequent requests should not have count in the context
+        request = Request.blank("/", POST='{}')
+        response = app.process_request(request)
+        assert response.status == '200 OK'
+        assert response.json == 1
 
 class TestFireflyFunction:
     def test_call(self):
