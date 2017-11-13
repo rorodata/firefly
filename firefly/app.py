@@ -71,7 +71,7 @@ class Firefly(object):
             return self.http_error('403 Forbidden', error='Invalid auth token')
 
         # Clear all the existing state, if any
-        #ctx.__dict__.clear()
+        ctx.__dict__.clear()
 
         ctx.request = request
 
