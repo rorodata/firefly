@@ -1,10 +1,11 @@
 import cgi
 from webob import Request, Response
 from webob.exc import HTTPNotFound
+from jinja2 import FileSystemLoader, Environment
 import json
 import logging
 from .validator import validate_args, ValidationError
-from .utils import json_encode, is_file, FileIter
+from .utils import json_encode, is_file, FileIter, get_template_path
 from .version import __version__
 import threading
 
@@ -47,6 +48,24 @@ class Firefly(object):
             }
         return help_dict
 
+    def generate_showcase(self):
+        # loader = FileSystemLoader(searchpath='./templates')
+        loader = FileSystemLoader(searchpath=get_template_path())
+        env = Environment(loader=loader)
+        template = env.get_template('index.html')
+        functions = [
+                {'name': name, 'path': spec['path'], 'doc': spec['doc'], 'parameters': spec['parameters']}
+                for name, spec in self.generate_function_list().items()
+                ]
+        html = template.render({
+            'name': 'stub', # TODO Adds support for naming the API
+            'functions': functions
+            })
+        response = Response(content_type='text/html')
+        response.status = 200
+        response.text = html
+        return response
+
     def __call__(self, environ, start_response):
         request = Request(environ)
         response = self.process_request(request)
@@ -73,7 +92,9 @@ class Firefly(object):
         ctx.request = request
 
         path = request.path_info
-        if path in self.mapping:
+        if path == "/index.html":
+            return self.generate_showcase()
+        elif path in self.mapping:
             func = self.mapping[path]
             response = func(request)
         else:
