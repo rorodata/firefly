@@ -13,6 +13,11 @@ def json_encode(data):
 def is_file(obj):
     return hasattr(obj, "read")
 
+def get_template_path():
+    firefly_module = __import__('firefly')
+    file = firefly_module.__file__
+    return '/'.join(file.split('/')[:-1]) + '/templates'
+
 class FileIter:
     def __init__(self, fileobj, chunk_size=4096):
         self.fileobj = fileobj
