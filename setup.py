@@ -77,7 +77,8 @@ install_requires = [
     'gunicorn==19.7.1',
     'WebOb==1.7.2',
     'requests==2.18.1',
-    'PyYAML==3.12'
+    'PyYAML==3.12',
+    'Jinja2==2.10'
 ]
 
 if PY2:
