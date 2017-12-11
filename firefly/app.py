@@ -92,7 +92,7 @@ class Firefly(object):
         ctx.request = request
 
         path = request.path_info
-        if path == "/index.html":
+        if path == "/docs":
             return self.generate_showcase()
         elif path in self.mapping:
             func = self.mapping[path]
