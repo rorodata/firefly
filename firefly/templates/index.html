@@ -15,52 +15,74 @@
 			<body>}
 		<div class="container">
 		<h3>{% if name %}{{ name }} | {% else %}{% endif %}firefly | API Browser</h3>
+		{% if version %}
 		<p><b>Version: </b>{{ version }}</p>
-		<div class="bs-firefly">
-			{% for function in functions %}
-			<div class="panel-group" id="accordion">
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h4 class="panel-title">
-							<div class="pull-right">{{ function.path }}</div>
-							<a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ loop.index }}">{{ function.name }}</a>
-						</h4>
-					</div>
-					<div id="collapse{{ loop.index }}" class="panel-collapse collapse in">
-						<div class="panel-body">
-							<h4>Doc</h4>
-							<p>
-								{% if function.doc %}
-									{{ function.doc }}
-								{% else %}
-									<i>No docstring provided</i>
-								{% endif %}
-							</p>
-							<h4>Parameters</h4>
-							<table class="table table-bordered table-condensed table-sm">
-								<thead class="thead-default">
-									<tr>
-										<th>#</th>
-										<th>Name</th>
-										<th>Kind</th>
-									</tr>
-								</thead>
-								<tbody>
-									{% for param in function.parameters %}
-									<tr>
-										<th scope="row">{{ loop.index }}</th>
-										<td>{{ param.name }}</td>
-										<td>{{ param.kind }}</td>
-									<tr>
-									{% endfor %}
-								</tbody>
-							</table>
+		{% endif %}
+		<div class="row">
+			<div class="col-md-8">
+				<div class="bs-firefly">
+					{% for function in functions %}
+					<div class="panel-group" id="accordion">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<div class="pull-right">{{ function.path }}</div>
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ loop.index }}">{{ function.name }}</a>
+								</h4>
+							</div>
+							<div id="collapse{{ loop.index }}" class="panel-collapse collapse in">
+								<div class="panel-body">
+									<h4>Doc</h4>
+									<p>
+										{% if function.doc %}
+											{{ function.doc }}
+										{% else %}
+											<i>No docstring provided</i>
+										{% endif %}
+									</p>
+									<h4>Parameters</h4>
+									<table class="table table-bordered table-condensed table-sm">
+										<thead class="thead-default">
+											<tr>
+												<th>#</th>
+												<th>Name</th>
+												<th>Kind</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for param in function.parameters %}
+											<tr>
+												<th scope="row">{{ loop.index }}</th>
+												<td>{{ param.name }}</td>
+												<td>{{ param.kind }}</td>
+											<tr>
+											{% endfor %}
+										</tbody>
+									</table>
+								</div>
+							</div>
 						</div>
 					</div>
+					{% endfor %}
 				</div>
+			</div>	
+			<div class="col-md-4">
+				<p>The API can be used by using firefly-client</p>
+				<p>Install it by:</p>
+				<div class="well">
+<samp>
+$ pip install firefly
+</samp>
+				</div>
+				<div class="well">
+<samp>
+>>> import firefly<br/>
+>>> client = firefly.Client("&lt;api_ip&gt;")<br/>
+>>> client.&lt;func_name&gt;(&lt;parameters&gt;)<br/>
+&lt;function_response&gt;
+</samp>
+				</div>				
 			</div>
-			{% endfor %}
-		</div>
 		</div>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
