@@ -5,7 +5,7 @@ from jinja2 import PackageLoader, Environment
 import json
 import logging
 from .validator import validate_args, ValidationError
-from .utils import json_encode, is_file, FileIter, get_template_path
+from .utils import json_encode, is_file, FileIter
 from .version import __version__
 import threading
 
