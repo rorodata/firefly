@@ -1,7 +1,7 @@
 import cgi
 from webob import Request, Response
 from webob.exc import HTTPNotFound
-from jinja2 import FileSystemLoader, Environment
+from jinja2 import PackageLoader, Environment
 import json
 import logging
 from .validator import validate_args, ValidationError
@@ -23,8 +23,7 @@ logger = logging.getLogger("firefly")
 ctx = threading.local()
 ctx.request = None
 
-loader = FileSystemLoader(searchpath=get_template_path())
-env = Environment(loader=loader)
+env = Environment(loader=PackageLoader('firefly', 'templates'))
 template = env.get_template('index.html')
 
 class Firefly(object):
