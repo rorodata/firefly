@@ -23,6 +23,10 @@ logger = logging.getLogger("firefly")
 ctx = threading.local()
 ctx.request = None
 
+loader = FileSystemLoader(searchpath=get_template_path())
+env = Environment(loader=loader)
+template = env.get_template('index.html')
+
 class Firefly(object):
     def __init__(self, auth_token=None):
         self.mapping = {}
@@ -49,10 +53,6 @@ class Firefly(object):
         return help_dict
 
     def generate_showcase(self):
-        # loader = FileSystemLoader(searchpath='./templates')
-        loader = FileSystemLoader(searchpath=get_template_path())
-        env = Environment(loader=loader)
-        template = env.get_template('index.html')
         functions = [
                 {'name': name, 'path': spec['path'], 'doc': spec['doc'], 'parameters': spec['parameters']}
                 for name, spec in self.generate_function_list().items()
