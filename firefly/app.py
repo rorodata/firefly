@@ -58,7 +58,6 @@ class Firefly(object):
                 for name, spec in self.generate_function_list().items()
                 ]
         html = template.render({
-            'name': 'stub', # TODO Adds support for naming the API
             'functions': functions
             })
         response = Response(content_type='text/html')
