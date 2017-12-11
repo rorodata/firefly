@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>{% if name %}{{ name }} | {% else %}{% endif %}firefly | API Browser</title>
+				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+				<style type="text/css">
+						.bs-example{
+							margin: 20px;
+						}
+				</style>
+			</head>
+			<body>}
+		<div class="container">
+		<h3>{% if name %}{{ name }} | {% else %}{% endif %}firefly | API Browser</h3>
+		<p><b>Version: </b>{{ version }}</p>
+		<div class="bs-firefly">
+			{% for function in functions %}
+			<div class="panel-group" id="accordion">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<div class="pull-right">{{ function.path }}</div>
+							<a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ loop.index }}">{{ function.name }}</a>
+						</h4>
+					</div>
+					<div id="collapse{{ loop.index }}" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<h4>Doc</h4>
+							<p>
+								{% if function.doc %}
+									{{ function.doc }}
+								{% else %}
+									<i>No docstring provided</i>
+								{% endif %}
+							</p>
+							<h4>Parameters</h4>
+							<table class="table table-bordered table-condensed table-sm">
+								<thead class="thead-default">
+									<tr>
+										<th>#</th>
+										<th>Name</th>
+										<th>Kind</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% for param in function.parameters %}
+									<tr>
+										<th scope="row">{{ loop.index }}</th>
+										<td>{{ param.name }}</td>
+										<td>{{ param.kind }}</td>
+									<tr>
+									{% endfor %}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+		</div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	</body>
+</html>
