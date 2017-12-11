@@ -52,12 +52,13 @@ class Firefly(object):
             }
         return help_dict
 
-    def generate_showcase(self):
+    def generate_showcase(self, **kwargs):
         functions = [
                 {'name': name, 'path': spec['path'], 'doc': spec['doc'], 'parameters': spec['parameters']}
                 for name, spec in self.generate_function_list().items()
                 ]
         html = template.render({
+            'host_url': kwargs['host_url'],
             'functions': functions
             })
         response = Response(content_type='text/html')
@@ -92,7 +93,7 @@ class Firefly(object):
 
         path = request.path_info
         if path == "/docs":
-            return self.generate_showcase()
+            return self.generate_showcase(host_url=request.environ['HTTP_HOST'])
         elif path in self.mapping:
             func = self.mapping[path]
             response = func(request)
