@@ -75,6 +75,8 @@ class Client:
     def handle_response(self, response):
         if response.status_code == 200:
             return self.decode_response(response)
+        elif response.status_code == 400:
+            raise ValueError(response.json()["error"])
         elif response.status_code == 403:
             raise FireflyError("Authorization token mismatch.")
         elif response.status_code == 404:
