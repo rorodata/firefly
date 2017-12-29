@@ -78,7 +78,11 @@ class Firefly(object):
         path = request.path_info
         if path in self.mapping:
             func = self.mapping[path]
-            response = func(request)
+            # XXX-Anand: Another quick fix for CORS support
+            if request.method == 'OPTIONS':
+                response = Response(status='200 OK', body='')
+            else:
+                response = func(request)
         else:
             response = self.http_error('404 Not Found', error="Not found: " + path)
 
