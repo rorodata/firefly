@@ -82,6 +82,16 @@ class Firefly(object):
         else:
             response = self.http_error('404 Not Found', error="Not found: " + path)
 
+        # XXX-Anand: Dec 2017 - QuickFix - CORS support
+        # Adding CORS headers to every response to allow
+        # making calls to the API from any JS application.
+        extra_headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,POST',
+            'Access-Control-Allow-Headers': 'Content-type'
+        }
+        response.headerlist += list(extra_headers.items())
+
         ctx.request = None
         return response
 
