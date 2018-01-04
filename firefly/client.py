@@ -102,7 +102,9 @@ class Client:
             return response.json()
 
 def RemoteFunction(client, func_name):
-    def wrapped(**kwargs):
+    def wrapped(*args, **kwargs):
+        if args:
+            raise FireflyError('Firefly functions only accept named arguments')
         return client.call_func(func_name, **kwargs)
     wrapped.__name__ = func_name
     wrapped.__qualname__ = func_name
