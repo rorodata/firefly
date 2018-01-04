@@ -1,6 +1,12 @@
 Firefly changelog
 =================
 
+Version 0.1.11 - 2018-01-04
+---------------------------
+
+* Added better handling of validation errors to the client
+* Added better error message when the client function is called with positional arguments instead of keyword arguments
+
 Version 0.1.10 - 2017-11-13
 ---------------------------
 
