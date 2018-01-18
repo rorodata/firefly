@@ -34,8 +34,8 @@ Let us see how to use it with a client.
 
 	>>> import firefly
 	>>> client = firefly.Client("http://127.0.0.1:8000/")
-	>>> client.square(n=4)
-	16
+	>>> client.fib(n=10)
+	89
 
 The service can also be invoked by sending a POST request.
 
