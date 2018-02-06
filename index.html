@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>firefly &#8212; Firefly  documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="firefly">
+<h1>firefly<a class="headerlink" href="#firefly" title="Permalink to this headline">¶</a></h1>
+<p>firefly is a function as a service framework which can be used to deploy
+functions as a web service. In turn, the functions can be accessed over a
+REST based API or RPC like client. In short, <code class="docutils literal"><span class="pre">firefly</span></code> puts your
+<strong>functions on steroids</strong>.</p>
+<p>Machine Learning models can even be deployed over <code class="docutils literal"><span class="pre">firefly</span></code>.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">firefly</span></code> can be installed by using <code class="docutils literal"><span class="pre">pip</span></code> as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install firefly-python
+</pre></div>
+</div>
+<p>You can check the installation by using:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ firefly -h
+</pre></div>
+</div>
+</div>
+<div class="section" id="basic-usage">
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
+<p>Create a simple python function:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># funcs.py</span>
+
+<span class="k">def</span> <span class="nf">square</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">n</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>And then this function can run through <code class="docutils literal"><span class="pre">firefly</span></code> by the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ firefly funcs.square
+http://127.0.0.1:8000/
+...
+</pre></div>
+</div>
+<p>This function is now accessible at <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/square</span></code> .
+An inbuilt <code class="docutils literal"><span class="pre">Client</span></code> is also provided to communicate with the <code class="docutils literal"><span class="pre">firefly</span></code>
+server. Example usage of the client:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">firefly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">firefly</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">&quot;http://127.0.0.1:8000/&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+<p>Besides that, you can also use <code class="docutils literal"><span class="pre">curl</span></code> or any software through which you can do
+a POST request to the endpoint.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -d &#39;{&quot;n&quot;: 4}&#39; http://127.0.0.1:8000/square
+16
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">firefly</span></code> supports for any number of functions. You can pass multiple
+functions as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ firefly funcs.square funcs.cube
+</pre></div>
+</div>
+<p>The functions <code class="docutils literal"><span class="pre">square</span></code> and <code class="docutils literal"><span class="pre">cube</span></code> can be accessed at <code class="docutils literal"><span class="pre">127.0.0.1:8000/square</span></code>
+and <code class="docutils literal"><span class="pre">127.0.0.01:8000/cube</span></code> respectively.</p>
+</div>
+<div class="section" id="authentication">
+<h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">firefly</span></code> also supports token-based authentication. You will need to pass a token
+through the CLI or the config file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ # CLI Usage
+$ firefly --token abcd1234 funcs.square
+http://127.0.0.1:8000/
+</pre></div>
+</div>
+<p>The token now needs to be passed with each request.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">firefly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">firefly</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">&quot;http://127.0.0.1:8000/&quot;</span><span class="p">,</span> <span class="n">auth_token</span><span class="o">=</span><span class="s2">&quot;abcd1234&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+<p>If you are using anything other than inbuilt-client, the <code class="docutils literal"><span class="pre">Authorization</span></code>
+HTTP header needs to be set in the POST request.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -d &#39;{&quot;n&quot;: 4}&#39; -H &quot;Authorization: Token abcd1234&quot; http://127.0.0.1:8000/square
+16
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-a-config-file">
+<h2>Using a config file<a class="headerlink" href="#using-a-config-file" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">firefly</span></code> can also take a configuration file with the following schema:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># config.yml</span>
+
+<span class="n">version</span><span class="p">:</span> <span class="mf">1.0</span>
+<span class="n">token</span><span class="p">:</span> <span class="s2">&quot;abcd1234&quot;</span>
+<span class="n">functions</span><span class="p">:</span>
+  <span class="n">square</span><span class="p">:</span>
+    <span class="n">path</span><span class="p">:</span> <span class="s2">&quot;/square&quot;</span>
+    <span class="n">function</span><span class="p">:</span> <span class="s2">&quot;funcs.square&quot;</span>
+  <span class="n">cube</span><span class="p">:</span>
+    <span class="n">path</span><span class="p">:</span> <span class="s2">&quot;/cube&quot;</span>
+    <span class="n">function</span><span class="p">:</span> <span class="s2">&quot;funcs.cube&quot;</span>
+  <span class="o">...</span>
+</pre></div>
+</div>
+<p>You can specify the configuration file as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ firefly -c config.yml
+http://127.0.0.1:8000/
+...
+</pre></div>
+</div>
+</div>
+<div class="section" id="deploying-a-ml-model">
+<h2>Deploying a ML model<a class="headerlink" href="#deploying-a-ml-model" title="Permalink to this headline">¶</a></h2>
+<p>Machine Learning models can also be deployed by using <code class="docutils literal"><span class="pre">firefly</span></code>. You need to
+wrap the prediction logic as a function. For example, if you have a directory
+as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ls
+model.py classifier.pkl
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">classifier.pkl</span></code> is a <code class="docutils literal"><span class="pre">joblib</span></code> dump of a SVM Classifier model.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># model.py</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">joblib</span>
+
+<span class="n">clf</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;classifier.pkl&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">predicted</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>    <span class="c1"># predicted is 1x1 numpy array</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">predicted</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Invoke <code class="docutils literal"><span class="pre">firefly</span></code> as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ firefly model.predict
+http://127.0.0.1:8000/
+...
+</pre></div>
+</div>
+<p>Now, you can access this by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">firefly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">firefly</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">&quot;http://127.0.0.1:8000/&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>You can use any model provided the function returns a JSON friendly data type.</p>
+</div>
+<div class="section" id="firefly-with-gunicorn">
+<h2>Firefly with gunicorn<a class="headerlink" href="#firefly-with-gunicorn" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">firefly</span></code> applications can also be deployed using <a class="reference external" href="http://gunicorn.org/">gunicorn</a> .
+The arguments that are passed to <code class="docutils literal"><span class="pre">firefly</span></code> via CLI can be set as environment
+variables.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ gunicorn --preload firefly.main:app -e FIREFLY_FUNCTIONS=&quot;funcs.square&quot; -e FIREFLY_TOKEN=&quot;abcd1234&quot;
+[2017-07-19 14:47:57 +0530] [29601] [INFO] Starting gunicorn 19.7.1
+[2017-07-19 14:47:57 +0530] [29601] [INFO] Listening at: http://127.0.0.1:8000 (29601)
+[2017-07-19 14:47:57 +0530] [29601] [INFO] Using worker: sync
+[2017-07-19 14:47:57 +0530] [29604] [INFO] Booting worker with pid: 29604
+</pre></div>
+</div>
+<p>If you want to deploy multiple functions, pass them as a comma-seperated list.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ gunicorn --preload firefly.main.app -e FIREFLY_FUNCTIONS=&quot;funcs.square,funcs.cube&quot; -e FIREFLY_TOKEN=&quot;abcd1234&quot;
+</pre></div>
+</div>
+</div>
+<div class="section" id="deployment-on-heroku">
+<h2>Deployment on Heroku<a class="headerlink" href="#deployment-on-heroku" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">firefly</span></code> functions are deploying on any cloud platform. This section shows
+how you can deploy ML models to <a class="reference external" href="http://heroku.com/">Heroku</a> . There are two
+important files apart from your model code that you will need to have in your
+application root directory - <code class="docutils literal"><span class="pre">Procfile</span></code> and <code class="docutils literal"><span class="pre">requirements.txt</span></code>. <code class="docutils literal"><span class="pre">Procfile</span></code>
+lets Heroku know what sort of process you want to run and what command it should
+run. <code class="docutils literal"><span class="pre">requirements.txt</span></code> specifies dependencies of your code.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># requirements.txt</span>
+<span class="n">firefly</span><span class="o">-</span><span class="n">python</span>
+<span class="n">sklearn</span>
+<span class="n">numpy</span>
+<span class="n">scipy</span>
+</pre></div>
+</div>
+<p>This <code class="docutils literal"><span class="pre">Procfile</span></code> tells Heroku to run <code class="docutils literal"><span class="pre">firefly</span></code> serving the <code class="docutils literal"><span class="pre">predict</span></code>
+function inside the <code class="docutils literal"><span class="pre">model</span></code> script.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Procfile</span>
+<span class="n">web</span><span class="p">:</span> <span class="n">gunicorn</span> <span class="o">--</span><span class="n">preload</span> <span class="n">firefly</span><span class="o">.</span><span class="n">main</span><span class="p">:</span><span class="n">app</span> <span class="o">-</span><span class="n">e</span> <span class="n">FIREFLY_FUNCTIONS</span><span class="o">=</span><span class="s2">&quot;model.predict&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ls
+model.py classifier.pkl requirements.txt Procfile
+</pre></div>
+</div>
+<p>Now that everything is setup on your machine, we can deploy the application to
+Heroku.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git add .
+
+$ git commit -m &quot;Added a Procfile.&quot;
+
+$ heroku login
+Enter your Heroku credentials.
+...
+
+$ heroku create
+Creating intense-falls-9163... done, stack is cedar
+http://intense-falls-9163.herokuapp.com/ | git@heroku.com:intense-falls-9163.git
+Git remote heroku added
+
+$ git push heroku master
+...
+-----&gt; Python app detected
+...
+-----&gt; Launching... done, v7
+     https://intense-falls-9163.herokuapp.com/ deployed to Heroku
+</pre></div>
+</div>
+<p>For more information about deploying python applications to Heroku, go
+<a class="reference external" href="https://devcenter.heroku.com/articles/deploying-python">here</a> .</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">firefly</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li><a class="reference internal" href="#authentication">Authentication</a></li>
+<li><a class="reference internal" href="#using-a-config-file">Using a config file</a></li>
+<li><a class="reference internal" href="#deploying-a-ml-model">Deploying a ML model</a></li>
+<li><a class="reference internal" href="#firefly-with-gunicorn">Firefly with gunicorn</a></li>
+<li><a class="reference internal" href="#deployment-on-heroku">Deployment on Heroku</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, rorodata.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
