@@ -1,6 +1,10 @@
 import requests
 from requests import ConnectionError
 from .validator import ValidationError
+import logging
+import time
+
+logger = logging.getLogger(__name__)
 
 class Client:
     def __init__(self, server_url, auth_token=None):
@@ -18,6 +22,7 @@ class Client:
 
     def request(self, _path, **kwargs):
         url = self.server_url + _path
+        t0 = time.time()
         try:
             headers = self.prepare_headers()
             data, files = self.decouple_files(kwargs)
@@ -27,6 +32,9 @@ class Client:
                 response = requests.post(url, json=data, headers=headers, stream=True)
         except ConnectionError:
             raise FireflyError('Unable to connect to the server, please try again later.')
+        finally:
+            t1 = time.time()
+            logger.info("%0.3f: POST %s", t1-t0, url)
         return self.handle_response(response)
 
     def prepare_headers(self):
