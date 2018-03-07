@@ -13,6 +13,8 @@ logger = logging.getLogger("firefly")
 def load_from_env():
     functions = None
     token = None
+    allow_origins = ''
+
     if 'FIREFLY_FUNCTIONS' in os.environ:
         function_names = os.environ['FIREFLY_FUNCTIONS'].split(",")
         try:
@@ -22,6 +24,9 @@ def load_from_env():
 
     if 'FIREFLY_TOKEN' in os.environ:
         token = os.environ['FIREFLY_TOKEN']
+
+    if 'FIREFLY_ALLOW_ORIGINS' in os.environ:
+        allow_origins = os.environ['FIREFLY_ALLOW_ORIGINS']
 
     if 'FIREFLY_CONFIG' in os.environ:
         logger.info("loading config file: %s", os.environ['FIREFLY_CONFIG'])
@@ -33,11 +38,15 @@ def load_from_env():
     if token:
         app.set_auth_token(token)
 
+    if allow_origins:
+        app.set_allowed_origins(allow_origins)
+
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-t", "--token", help="token to authenticate the requests")
     p.add_argument("-b", "--bind", dest="ADDRESS", default="127.0.0.1:8000")
     p.add_argument("-c", "--config", dest="config_file", default=None)
+    p.add_argument("--allow-origins", default=None, help="Origins to allow for cross-origin resource sharing")
     p.add_argument("functions", nargs='*', help="functions to serve")
     return p.parse_args()
 
@@ -103,6 +112,7 @@ def main():
     token = token or args.token
 
     app.set_auth_token(token)
+    app.set_allowed_origins(args.allow_origins)
     add_routes(app, functions)
 
     host, port = args.ADDRESS.split(":", 1)
