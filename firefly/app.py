@@ -23,13 +23,34 @@ ctx = threading.local()
 ctx.request = None
 
 class Firefly(object):
-    def __init__(self, auth_token=None):
+    def __init__(self, auth_token=None, allowed_origins=""):
+        """Creates a firefly application.
+
+        If the optional parameter auth_token is specified, the
+        only the requests which provide that auth token in authorization
+        header are allowed.
+
+        The Cross Origin Request Sharing is disabled by default. To enable it,
+        pass the allowed origins as allowed_origins. To allow all origins, set it
+        to ``*``.
+
+        :param auth_token: the auto_token for the application
+        :param allowed_origins: allowed origins for cross-origin requests
+        """
         self.mapping = {}
         self.add_route('/', self.generate_index,internal=True)
         self.auth_token = auth_token
+        self.allowed_origins = allowed_origins
+
 
     def set_auth_token(self, token):
         self.auth_token = token
+
+    def set_allowed_origins(self, allowed_origins):
+        # Also support mutliple origins as a list.
+        if isinstance(allowed_origins, list):
+            allowed_origins = ", ".join(allowed_origins)
+        self.allowed_origins = allowed_origins or ""
 
     def add_route(self, path, function, function_name=None, **kwargs):
         self.mapping[path] = FireflyFunction(function, function_name, **kwargs)
@@ -66,6 +87,17 @@ class Firefly(object):
         response.text = json_encode({"error": error})
         return response
 
+    def _prepare_cors_headers(self):
+        if self.allowed_origins:
+            headers = {
+                'Access-Control-Allow-Origin': self.allowed_origins,
+                'Access-Control-Allow-Methods': 'GET,POST',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            }
+            return list(headers.items())
+        else:
+            return []
+
     def process_request(self, request):
         if not self.verify_auth_token(request):
             return self.http_error('403 Forbidden', error='Invalid auth token')
@@ -78,23 +110,13 @@ class Firefly(object):
         path = request.path_info
         if path in self.mapping:
             func = self.mapping[path]
-            # XXX-Anand: Another quick fix for CORS support
             if request.method == 'OPTIONS':
-                response = Response(status='200 OK', body='')
+                response = Response(status='200 OK', body=b'')
             else:
                 response = func(request)
+            response.headerlist += self._prepare_cors_headers()
         else:
             response = self.http_error('404 Not Found', error="Not found: " + path)
-
-        # XXX-Anand: Dec 2017 - QuickFix - CORS support
-        # Adding CORS headers to every response to allow
-        # making calls to the API from any JS application.
-        extra_headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET,POST',
-            'Access-Control-Allow-Headers': 'Content-type'
-        }
-        response.headerlist += list(extra_headers.items())
 
         ctx.request = None
         return response
