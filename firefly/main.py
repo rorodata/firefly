@@ -112,7 +112,8 @@ def main():
     token = token or args.token
 
     app.set_auth_token(token)
-    app.set_allowed_origins(args.allow_origins)
+    if args.allow_origins:
+        app.set_allowed_origins(args.allow_origins)
     add_routes(app, functions)
 
     host, port = args.ADDRESS.split(":", 1)
