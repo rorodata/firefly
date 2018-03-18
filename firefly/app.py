@@ -1,6 +1,7 @@
 import cgi
 from webob import Request, Response
 from webob.exc import HTTPNotFound
+from jinja2 import PackageLoader, Environment
 import json
 import logging
 from .validator import validate_args, ValidationError
@@ -21,6 +22,9 @@ logger = logging.getLogger("firefly")
 # or switch to Flask.
 ctx = threading.local()
 ctx.request = None
+
+env = Environment(loader=PackageLoader('firefly', 'templates'))
+template = env.get_template('index.html')
 
 class Firefly(object):
     def __init__(self, auth_token=None, allowed_origins=""):
@@ -68,6 +72,20 @@ class Firefly(object):
             }
         return help_dict
 
+    def render_docs(self, **kwargs):
+        functions = [
+                {'name': name, 'path': spec['path'], 'doc': spec['doc'], 'parameters': spec['parameters']}
+                for name, spec in self.generate_function_list().items()
+                ]
+        html = template.render({
+            'host_url': kwargs['host_url'],
+            'functions': functions
+            })
+        response = Response(content_type='text/html')
+        response.status = 200
+        response.text = html
+        return response
+
     def __call__(self, environ, start_response):
         request = Request(environ)
         response = self.process_request(request)
@@ -108,7 +126,9 @@ class Firefly(object):
         ctx.request = request
 
         path = request.path_info
-        if path in self.mapping:
+        if path == "/docs":
+            return self.render_docs(host_url=request.environ['HTTP_HOST'])
+        elif path in self.mapping:
             func = self.mapping[path]
             if request.method == 'OPTIONS':
                 response = Response(status='200 OK', body=b'')
