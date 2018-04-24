@@ -6,6 +6,7 @@ import yaml
 import logging
 from .app import Firefly
 from .validator import ValidationError, FireflyError
+from .version import __version__
 from wsgiref.simple_server import make_server
 
 logger = logging.getLogger("firefly")
@@ -43,6 +44,7 @@ def load_from_env():
 
 def parse_args():
     p = argparse.ArgumentParser()
+    p.add_argument("--version", action="store_true", help="Prints the firefly version")
     p.add_argument("-t", "--token", help="token to authenticate the requests")
     p.add_argument("-b", "--bind", dest="ADDRESS", default="127.0.0.1:8000")
     p.add_argument("-c", "--config", dest="config_file", default=None)
@@ -98,6 +100,10 @@ def main():
         sys.path.insert(0, "")
 
     args = parse_args()
+
+    if args.version:
+        print("Firefly Version {}".format(__version__))
+        return
 
     if (args.functions and args.config_file) or (not args.functions and not args.config_file):
         raise FireflyError("Invalid arguments provided. Please specify either a config file or a list of functions.")
