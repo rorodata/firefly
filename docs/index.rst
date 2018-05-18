@@ -6,12 +6,9 @@
 firefly
 =======
 
-firefly is a function as a service framework which can be used to deploy
-functions as a web service. In turn, the functions can be accessed over a
-REST based API or RPC like client. In short, ``firefly`` puts your
-**functions on steroids**.
+firefly is a function as a service framework which can be used to deploy functions as a web service. In turn, the functions can be accessed over a REST based API. It works like RPC, but it also provides a way to customize the URLs to allow great RESTful API as well.
 
-Machine Learning models can even be deployed over ``firefly``.
+Firefly was initially started to make deploying machine learning models easier, but it can used for other use cases equally well.
 
 Installation
 ------------
