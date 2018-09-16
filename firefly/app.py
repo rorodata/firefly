@@ -47,7 +47,7 @@ class Firefly(object):
         self.auth_token = token
 
     def set_allowed_origins(self, allowed_origins):
-        # Also support mutliple origins as a list.
+        # Also support multiple origins as a list.
         if isinstance(allowed_origins, list):
             allowed_origins = ", ".join(allowed_origins)
         self.allowed_origins = allowed_origins or ""
