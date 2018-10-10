@@ -2,11 +2,13 @@ import cgi
 from webob import Request, Response
 from webob.exc import HTTPNotFound
 import json
+import functools
 import logging
 from .validator import validate_args, ValidationError
 from .utils import json_encode, is_file, FileIter
 from .version import __version__
 import threading
+from wsgiref.simple_server import make_server
 
 try:
     from inspect import signature, _empty
@@ -51,6 +53,14 @@ class Firefly(object):
         if isinstance(allowed_origins, list):
             allowed_origins = ", ".join(allowed_origins)
         self.allowed_origins = allowed_origins or ""
+
+    def function(self, func=None, name=None, path=None):
+        if func is None:
+            return functools.partial(self.function, name=name, path=path)
+        name = name or func.__name__
+        path = path or "/" + name
+        self.add_route(path=path, function=func, function_name=name)
+        return func
 
     def add_route(self, path, function, function_name=None, **kwargs):
         self.mapping[path] = FireflyFunction(function, function_name, **kwargs)
@@ -120,6 +130,13 @@ class Firefly(object):
 
         ctx.request = None
         return response
+
+    def run(self, host=None, port=None):
+        host = host or "localhost"
+        port = port or 8000
+        print("http://{}:{}/".format(host, port))
+        server = make_server(host, port, self)
+        server.serve_forever()
 
 class FireflyFunction(object):
     def __init__(self, function, function_name=None, **options):
