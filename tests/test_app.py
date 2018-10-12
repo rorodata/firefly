@@ -16,7 +16,7 @@ def dummy():
 
 class TestFirefly:
     def test_generate_function_list(self):
-        firefly = Firefly()
+        firefly = Firefly(__name__)
         assert firefly.generate_function_list() == {}
 
         firefly.add_route("/square", square, "square")
@@ -35,7 +35,7 @@ class TestFirefly:
         assert firefly.generate_function_list() == returned_dict
 
     def test_generate_function_list_for_func_name(self):
-        firefly = Firefly()
+        firefly = Firefly(__name__)
         firefly.add_route("/sq2", square, "sq")
         returned_dict = {
                 "sq": {
@@ -52,7 +52,7 @@ class TestFirefly:
         assert firefly.generate_function_list() == returned_dict
 
     def test_function_call(self):
-        app = Firefly()
+        app = Firefly(__name__)
         app.add_route("/", square)
 
         request = Request.blank("/", POST='{"a": 3}')
@@ -61,7 +61,7 @@ class TestFirefly:
         assert response.text == '9'
 
     def test_auth_failure(self):
-        app = Firefly(auth_token='abcd')
+        app = Firefly(__name__, auth_token='abcd')
         app.add_route("/", square)
 
         request = Request.blank("/", POST='{"a": 3}')
@@ -77,7 +77,7 @@ class TestFirefly:
         assert response.status == '403 Forbidden'
 
     def test_http_error_404(self):
-        app = Firefly()
+        app = Firefly(__name__)
         app.add_route("/", square)
 
         request = Request.blank("/sq", POST='{"a": 3}')
@@ -89,7 +89,7 @@ class TestFirefly:
             keys = sorted(ctx.__dict__.keys())
             return list(keys)
 
-        app = Firefly()
+        app = Firefly(__name__)
         app.add_route("/", peek_ctx)
 
         request = Request.blank("/", POST='{}')
@@ -103,7 +103,7 @@ class TestFirefly:
             ctx.count = getattr(ctx, "count", 0) + 1
             return ctx.count
 
-        app = Firefly()
+        app = Firefly(__name__)
         app.add_route("/", peek_ctx)
 
         request = Request.blank("/", POST='{}')

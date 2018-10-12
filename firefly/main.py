@@ -130,5 +130,5 @@ def main():
 
 setup_logger()
 logger.info("Starting Firefly...")
-app = Firefly()
+app = Firefly(__name__)
 load_from_env()
