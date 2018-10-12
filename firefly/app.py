@@ -26,7 +26,7 @@ ctx = threading.local()
 ctx.request = None
 
 class Firefly(object):
-    def __init__(self, name, auth_token=None, allowed_origins="", flask_app=None):
+    def __init__(self, name="firefly", auth_token=None, allowed_origins="", flask_app=None):
         """Creates a firefly application.
 
         If the optional parameter auth_token is specified, the
