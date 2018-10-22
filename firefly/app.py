@@ -1,6 +1,4 @@
 import cgi
-from webob import Request, Response
-from webob.exc import HTTPNotFound
 import json
 import functools
 import logging
@@ -8,7 +6,9 @@ from .validator import validate_args, ValidationError
 from .utils import json_encode, is_file, FileIter
 from .version import __version__
 import threading
+from flask import Flask, jsonify, request
 from wsgiref.simple_server import make_server
+from .routing import FireflyRule
 
 try:
     from inspect import signature, _empty
@@ -25,7 +25,7 @@ ctx = threading.local()
 ctx.request = None
 
 class Firefly(object):
-    def __init__(self, auth_token=None, allowed_origins=""):
+    def __init__(self, auth_token=None, allowed_origins="", flask_app=None):
         """Creates a firefly application.
 
         If the optional parameter auth_token is specified, the
@@ -39,11 +39,12 @@ class Firefly(object):
         :param auth_token: the auto_token for the application
         :param allowed_origins: allowed origins for cross-origin requests
         """
-        self.mapping = {}
-        self.add_route('/', self.generate_index,internal=True)
         self.auth_token = auth_token
         self.allowed_origins = allowed_origins
+        self.flask_app = flask_app or Flask("firefly")
 
+        # Install custom url rule to use type annotations in parsing urls
+        self.flask_app.url_rule_class = FireflyRule
 
     def set_auth_token(self, token):
         self.auth_token = token
@@ -54,185 +55,107 @@ class Firefly(object):
             allowed_origins = ", ".join(allowed_origins)
         self.allowed_origins = allowed_origins or ""
 
-    def function(self, func=None, name=None, path=None):
-        if func is None:
-            return functools.partial(self.function, name=name, path=path)
-        name = name or func.__name__
-        path = path or "/" + name
-        self.add_route(path=path, function=func, function_name=name)
-        return func
+    def function(self, func):
+        name = func.__name__
+        path = "/" + name
+        method = "POST"
+        return self.add_route(path=path, func=func, method=method, endpoint=name)
 
-    def add_route(self, path, function, function_name=None, **kwargs):
-        self.mapping[path] = FireflyFunction(function, function_name, **kwargs)
+    def route(self, path, method="GET", endpoint=None):
+        def decorator(f):
+            self.add_route(path=path, method=method, endpoint=endpoint, func=f)
+            return f
+        return decorator
 
-    def generate_function_list(self):
-        return {f.name: {"path": path, "doc": f.doc, "parameters": f.sig}
-                for path, f in self.mapping.items()
-                if f.options.get("internal") != True}
+    def add_route(self, path, func, endpoint=None, method=None, **kwargs):
+        endpoint = endpoint or func.__name__
+        method = method or "POST"
 
-    def generate_index(self):
-        help_dict = {
-            "app": "firefly",
-            "version": __version__,
-            "functions": self.generate_function_list()
-            }
-        return help_dict
+        view_func = ViewFunction(func, name=endpoint)
 
-    def __call__(self, environ, start_response):
-        request = Request(environ)
-        response = self.process_request(request)
-        return response(environ, start_response)
+        self.flask_app.add_url_rule(
+            rule=path,
+            endpoint=endpoint,
+            view_func=view_func,
+            methods=[method],
+            view_function=view_func,
+            **kwargs)
 
-    def verify_auth_token(self, request):
-        return not self.auth_token or self.auth_token == self._get_auth_token(request)
+    def run(self, *args, **kwargs):
+        self.flask_app.run(*args, **kwargs)
 
-    def _get_auth_token(self, request):
-        auth = request.headers.get("Authorization")
-        if auth and auth.lower().startswith("token"):
-            return auth[len("token"):].strip()
-
-    def http_error(self, status, error=None):
-        response = Response()
-        response.status = status
-        response.text = json_encode({"error": error})
-        return response
-
-    def _prepare_cors_headers(self):
-        if self.allowed_origins:
-            headers = {
-                'Access-Control-Allow-Origin': self.allowed_origins,
-                'Access-Control-Allow-Methods': 'GET,POST',
-                'Access-Control-Allow-Headers': 'Content-Type'
-            }
-            return list(headers.items())
-        else:
-            return []
-
-    def process_request(self, request):
-        if not self.verify_auth_token(request):
-            return self.http_error('403 Forbidden', error='Invalid auth token')
-
-        # Clear all the existing state, if any
-        ctx.__dict__.clear()
-
-        ctx.request = request
-
-        path = request.path_info
-        if path in self.mapping:
-            func = self.mapping[path]
-            if request.method == 'OPTIONS':
-                response = Response(status='200 OK', body=b'')
-            else:
-                response = func(request)
-            response.headerlist += self._prepare_cors_headers()
-        else:
-            response = self.http_error('404 Not Found', error="Not found: " + path)
-
-        ctx.request = None
-        return response
-
-    def run(self, host=None, port=None):
-        host = host or "localhost"
-        port = port or 8000
-        print("http://{}:{}/".format(host, port))
-        server = make_server(host, port, self)
-        server.serve_forever()
-
-class FireflyFunction(object):
-    def __init__(self, function, function_name=None, **options):
+class ViewFunction(object):
+    def __init__(self, function, name=None, **options):
         self.function = function
         self.options = options
-        self.name = function_name or function.__name__
+        self.name = name or function.__name__
         self.doc = function.__doc__ or ""
-        self.sig = self.generate_signature(function)
+        self.sig = signature(function)
+        self.route_params = set()
+
+    def set_route_params(self, params):
+        """Sets the names of the parameters that comes
+        from the URL rule.
+
+        This method is called when a new FireflyRule is created.
+        """
+        self.route_params = set(params)
 
     def __repr__(self):
-        return "<FireflyFunction %r>" % self.function
+        return "<ViewFunction %r>" % self.function
 
-    def __call__(self, request):
-        if self.options.get("internal", False):
-            return self.make_response(self.function())
+    def __call__(self, **route_kwargs):
+        kwargs = dict(route_kwargs)
 
-        logger.info("calling function %s", self.name)
-        try:
-            kwargs = self.get_inputs(request)
-        except ValueError as err:
-            logger.warn("Function %s failed with ValueError: %s.", self.name, err)
-            return self.make_response({"error": str(err)}, status=400)
-
-        try:
-            validate_args(self.function, kwargs)
-        except ValidationError as err:
-            logger.warn("Function %s failed with ValidationError: %s.", self.name, err)
-            return self.make_response({"error": str(err)}, status=422)
-
-        try:
-            result = self.function(**kwargs)
-        except HTTPError as e:
-            return e.get_response()
-        except Exception as err:
-            logger.error("Function %s failed with exception.", self.name, exc_info=True)
-            return self.make_response(
-                    {"error": "{}: {}".format(err.__class__.__name__, str(err))}, status=500
-                )
-        return self.make_response(result)
-
-    def get_inputs(self, request):
-        content_type = self.get_content_type(request)
-        if content_type == 'multipart/form-data':
-            return self.get_multipart_formdata_inputs(request)
+        if request.method in ("POST", "PUT"):
+            kwargs.update(self._get_post_data())
         else:
-            return json.loads(request.body.decode('utf-8'))
+            kwargs.update(self.parse_request_args(request.args))
 
-    def get_content_type(self, request):
-        content_type = request.headers.get('Content-Type', 'application/octet-stream')
-        return content_type.split(';')[0]
+        kwargs = {k:v for k, v in kwargs.items() if k in self.sig.parameters}
+        result = self.function(**kwargs)
+        # if method is POST, also pass the POST parameters
+        return jsonify(result)
 
-    def get_multipart_formdata_inputs(self, request):
-        d = {}
-        for name, value in request.POST.items():
-            if isinstance(value, cgi.FieldStorage):
-                value = value.file
-            d[name] = value
-        return d
+    def _get_post_data(self):
+        if request.content_type == 'application/json':
+           return request.json
+        elif request.content_type == 'application/x-www-form-urlencoded':
+            return self.parse_request_args(request.form)
+        return {}
 
-    def make_response(self, result, status=200):
-        if is_file(result):
-            response = Response(content_type='application/octet-stream')
-            response.app_iter = FileIter(result)
+    def parse_request_args(self, args):
+        """Returns the arguments from GET parameters or POST form.
+        """
+        request_args = {}
+        for name in self.sig.parameters:
+            param = self.sig.parameters[name]
+            if name in self.route_params:
+                continue
+            elif name in args:
+                value = args[name]
+                argtype = param.annotation
+                try:
+                    request_args[name] = self.parse_request_arg(argtype, value)
+                except ValueError as e:
+                    logger.error("Failed to parse value of %s: %s", name, value)
+                    pass
+            elif param.default is not param.empty:
+                request_args[name] = param.default
+            else:
+                raise LookupError("Required argument %r is not provided or invalid." % name)
+        return request_args
+
+    def parse_request_param(self, type, value):
+        """Parses a request parameter and tries to convert it to specified type.
+
+        The type comes from the type annocation specified in the
+        view function definition and the parameter value comes
+        either from GET or POST request.
+        """
+        if isinstance(value, list):
+            value = value[0]
+        if type in [int, float, str]:
+            return type(value)
         else:
-            response = Response(content_type='application/json',
-                                charset='utf-8')
-            response.text = json_encode(result)
-        response.status = status
-        return response
-
-    def generate_signature(self, f):
-        func_sig = signature(f)
-        params = []
-
-        for param_name, param_obj in func_sig.parameters.items():
-            param = {
-                "name": param_name,
-                "kind": str(param_obj.kind)
-            }
-            if param_obj.default is not _empty:
-                param["default"] = param_obj.default
-            params += [param]
-
-        return params
-
-class HTTPError(Exception):
-    """Exception to be raised to send different HTTP status codes.
-    """
-    def __init__(self, status_code, body, headers={}):
-        self.status_code = status_code
-        self.body = body
-        self.headers = headers
-
-    def get_response(self):
-        response = Response()
-        response.status = self.status_code
-        response.text = self.body
-        response.headers.update(self.headers)
-        return response
+            return value
