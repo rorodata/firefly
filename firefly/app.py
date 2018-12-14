@@ -110,7 +110,9 @@ class Firefly(object):
 
     def process_request(self, request):
         if request.method == 'OPTIONS':
-            return  Response(status='200 OK', body=b'')
+            response = Response(status='200 OK', body=b'')
+            response.headerlist += self._prepare_cors_headers()
+            return response
 
         if not self.verify_auth_token(request):
             return self.http_error('403 Forbidden', error='Invalid auth token')
