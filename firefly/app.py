@@ -109,6 +109,9 @@ class Firefly(object):
             return []
 
     def process_request(self, request):
+        if request.method == 'OPTIONS':
+            return  Response(status='200 OK', body=b'')
+
         if not self.verify_auth_token(request):
             return self.http_error('403 Forbidden', error='Invalid auth token')
 
@@ -120,10 +123,7 @@ class Firefly(object):
         path = request.path_info
         if path in self.mapping:
             func = self.mapping[path]
-            if request.method == 'OPTIONS':
-                response = Response(status='200 OK', body=b'')
-            else:
-                response = func(request)
+            response = func(request)
             response.headerlist += self._prepare_cors_headers()
         else:
             response = self.http_error('404 Not Found', error="Not found: " + path)
