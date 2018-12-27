@@ -9,6 +9,7 @@ from .utils import json_encode, is_file, FileIter
 from .version import __version__
 import threading
 from wsgiref.simple_server import make_server
+from flask import Flask
 
 try:
     from inspect import signature, _empty
@@ -25,7 +26,7 @@ ctx = threading.local()
 ctx.request = None
 
 class Firefly(object):
-    def __init__(self, auth_token=None, allowed_origins=""):
+    def __init__(self, name="firefly", auth_token=None, allowed_origins="", flask_app=None):
         """Creates a firefly application.
 
         If the optional parameter auth_token is specified, the
@@ -39,11 +40,12 @@ class Firefly(object):
         :param auth_token: the auto_token for the application
         :param allowed_origins: allowed origins for cross-origin requests
         """
+        self.name = name
         self.mapping = {}
         self.add_route('/', self.generate_index,internal=True)
         self.auth_token = auth_token
         self.allowed_origins = allowed_origins
-
+        self.flask_app = flask_app or Flask(name)
 
     def set_auth_token(self, token):
         self.auth_token = token
